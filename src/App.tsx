@@ -1,15 +1,18 @@
 import { useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { useActor } from '@xstate/react';
+import { useSelector } from '@xstate/react';
 import { Vector3 } from 'three';
 import { Leva, useControls } from 'leva';
 
 import { OrbitControls, OrthographicCamera } from './core';
-import { globeBuilderService } from './services/globeBuilder.machine';
+import { GlobalServiceProvider, useServices } from './GlobalStateProvider';
 
 const Globe = () => {
-  const [state, send] = useActor(globeBuilderService);
-  const { dotMesh } = state.context;
+  const { globeBuilderService } = useServices();
+  const dotMesh = useSelector(
+    globeBuilderService,
+    (state) => state.context.dotMesh
+  );
 
   const { dotDensity, globeRadius, rows } = useControls({
     dotDensity: {
@@ -32,13 +35,13 @@ const Globe = () => {
   });
 
   useEffect(() => {
-    send({
+    globeBuilderService.send({
       type: 'UPDATE_GLOBE_DOTS',
       rows,
       dotDensity,
       globeRadius,
     });
-  }, [dotDensity, globeRadius, rows, send]);
+  }, [dotDensity, globeBuilderService, globeRadius, rows]);
 
   return (
     <group>
@@ -65,16 +68,21 @@ function App() {
   return (
     <>
       <Leva />
-      <Canvas
-        style={{
-          width: '100vw',
-          height: '100vh',
-        }}
-      >
-        <OrthographicCamera position={new Vector3(200, 200, 200)} zoom={270} />
-        <OrbitControls />
-        <Game />
-      </Canvas>
+      <GlobalServiceProvider>
+        <Canvas
+          style={{
+            width: '100vw',
+            height: '100vh',
+          }}
+        >
+          <OrthographicCamera
+            position={new Vector3(200, 200, 200)}
+            zoom={270}
+          />
+          <OrbitControls />
+          <Game />
+        </Canvas>
+      </GlobalServiceProvider>
     </>
   );
 }
