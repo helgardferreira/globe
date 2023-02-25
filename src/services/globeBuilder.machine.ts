@@ -27,6 +27,7 @@ type SetMapDataEvent = {
 type UpdateGlobeDotsEvent = {
   type: 'UPDATE_GLOBE_DOTS';
   dotDensity: number;
+  dotOffset: number;
   globeRadius: number;
   rows: number;
 };
@@ -38,6 +39,7 @@ type GlobeBuilderMachineEvent =
 
 type GlobeBuilderMachineContext = {
   dotDensity: number;
+  dotOffset: number;
   globeRadius: number;
   rows: number;
   dotSize: number;
@@ -60,10 +62,11 @@ const globeBuilderMachine = createMachine(
     initial: 'loading',
 
     context: {
-      rows: 200,
       dotDensity: 50,
-      globeRadius: 1,
+      dotOffset: 0,
       dotSize: 150,
+      globeRadius: 1,
+      rows: 200,
     },
 
     states: {
@@ -97,16 +100,20 @@ const globeBuilderMachine = createMachine(
         mapSize,
         imageData,
       })),
-      updateGlobeDots: assign((_, { dotDensity, globeRadius, rows }) => ({
-        dotDensity,
-        globeRadius,
-        rows,
-      })),
+      updateGlobeDots: assign(
+        (_, { dotDensity, dotOffset, globeRadius, rows }) => ({
+          dotDensity,
+          dotOffset,
+          globeRadius,
+          rows,
+        })
+      ),
       plotGlobeDots: assign(
         ({
           rows,
           globeRadius,
           dotDensity,
+          dotOffset,
           dotSize,
           mapSize,
           imageData,
@@ -118,9 +125,11 @@ const globeBuilderMachine = createMachine(
             prevDotMesh.geometry.dispose();
             prevDotMesh.material.dispose();
           }
+          const globeRadiusWithOffset = globeRadius + dotOffset;
           const dotMatrices: Matrix4[] = [];
           for (let lat = -90; lat <= 90; lat += 180 / rows) {
-            const radius = Math.cos(Math.abs(lat) * DEG2RAD) * globeRadius;
+            const radius =
+              Math.cos(Math.abs(lat) * DEG2RAD) * globeRadiusWithOffset;
             const circumference = radius * Math.PI * 2;
             const dotsForLat = circumference * dotDensity;
             const tempDot = new Object3D();
@@ -132,14 +141,18 @@ const globeBuilderMachine = createMachine(
                 continue;
               }
 
-              const positions = latLongToPositions(lat, long, globeRadius);
+              const positions = latLongToPositions(
+                lat,
+                long,
+                globeRadiusWithOffset
+              );
 
               tempDot.position.set(positions[0], positions[1], positions[2]);
 
               const lookAtPositions = latLongToPositions(
                 lat,
                 long,
-                globeRadius + 5
+                globeRadiusWithOffset + 5
               );
               tempDot.lookAt(
                 lookAtPositions[0],

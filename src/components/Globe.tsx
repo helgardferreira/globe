@@ -11,12 +11,17 @@ export const Globe = () => {
     (state) => state.context.dotMesh
   );
 
-  const { dotDensity, globeRadius, rows } = useControls({
+  const { dotDensity, dotOffset, globeRadius, rows } = useControls({
     dotDensity: {
       max: 100,
       min: 1,
       step: 1,
       value: 50,
+    },
+    dotOffset: {
+      max: 1.5,
+      min: 0,
+      value: 0,
     },
     globeRadius: {
       max: 1.4,
@@ -34,15 +39,16 @@ export const Globe = () => {
   useEffect(() => {
     globeBuilderService.send({
       type: 'UPDATE_GLOBE_DOTS',
-      rows,
       dotDensity,
+      dotOffset,
       globeRadius,
+      rows,
     });
-  }, [dotDensity, globeBuilderService, globeRadius, rows]);
+  }, [dotDensity, dotOffset, globeBuilderService, globeRadius, rows]);
 
   return (
     <group>
-      <mesh>
+      <mesh scale={[globeRadius, globeRadius, globeRadius]}>
         <sphereGeometry args={[1, 64, 64]} />
         <meshStandardMaterial color={0xffffff} />
       </mesh>
