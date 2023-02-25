@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { useSelector } from '@xstate/react';
-import { useControls } from 'leva';
 
 import { useServices } from '../GlobalStateProvider';
+import { useGlobeControls } from '../utils/hooks';
 
 export const Globe = () => {
   const { globeBuilderService } = useServices();
@@ -11,30 +11,7 @@ export const Globe = () => {
     (state) => state.context.dotMesh
   );
 
-  const { dotDensity, dotOffset, globeRadius, rows } = useControls({
-    dotDensity: {
-      max: 100,
-      min: 1,
-      step: 1,
-      value: 50,
-    },
-    dotOffset: {
-      max: 1.5,
-      min: 0,
-      value: 0,
-    },
-    globeRadius: {
-      max: 1.4,
-      min: 1,
-      value: 1,
-    },
-    rows: {
-      max: 1000,
-      min: 1,
-      step: 1,
-      value: 200,
-    },
-  });
+  const { dotDensity, dotOffset, globeRadius, rows } = useGlobeControls();
 
   useEffect(() => {
     globeBuilderService.send({
@@ -44,7 +21,7 @@ export const Globe = () => {
       globeRadius,
       rows,
     });
-  }, [dotDensity, dotOffset, globeBuilderService, globeRadius, rows]);
+  }, [dotDensity, dotOffset, globeRadius, rows, globeBuilderService]);
 
   return (
     <group>
