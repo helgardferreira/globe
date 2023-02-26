@@ -4,10 +4,12 @@
   export interface Typegen0 {
         '@@xstate/typegen': true;
         internalEvents: {
-          "xstate.init": { type: "xstate.init" };
+          "done.invoke.path.building:invocation[0]": { type: "done.invoke.path.building:invocation[0]"; data: unknown; __tip: "See the XState TS docs to learn how to strongly type this." };
+"xstate.init": { type: "xstate.init" };
         };
         invokeSrcNameMap: {
-          
+          "animateBuild$": "done.invoke.path.building:invocation[0]";
+"animateDestroy$": "done.invoke.path.destroying:invocation[0]";
         };
         missingImplementations: {
           actions: never;
@@ -17,6 +19,8 @@
         };
         eventsCausingActions: {
           "init": "INIT";
+"updateBuild": "UPDATE_BUILD";
+"updateDestroy": "UPDATE_DESTROY";
         };
         eventsCausingDelays: {
           
@@ -25,9 +29,10 @@
           
         };
         eventsCausingServices: {
-          
+          "animateBuild$": "INIT" | "UPDATE_BUILD";
+"animateDestroy$": "UPDATE_DESTROY" | "done.invoke.path.building:invocation[0]";
         };
-        matchesStates: "active" | "idle";
+        matchesStates: "building" | "destroying" | "dispose" | "idle";
         tags: never;
       }
   
