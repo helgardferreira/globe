@@ -12,11 +12,7 @@ import { DEG2RAD } from 'three/src/math/MathUtils';
 
 import mapUrl from '../assets/photos/map.png';
 import { fromImageLoad } from '../utils/rxjs';
-import {
-  type MapSize,
-  isDotVisible,
-  latLongToVec3 as latLongToPositions,
-} from '../utils/lib';
+import { type MapSize, isDotVisible, latLongToCoords } from '../utils/lib';
 
 type SetMapDataEvent = {
   type: 'SET_MAP_DATA';
@@ -141,7 +137,7 @@ const globeBuilderMachine = createMachine(
                 continue;
               }
 
-              const positions = latLongToPositions(
+              const positions = latLongToCoords(
                 lat,
                 long,
                 globeRadiusWithOffset
@@ -149,7 +145,7 @@ const globeBuilderMachine = createMachine(
 
               tempDot.position.set(positions[0], positions[1], positions[2]);
 
-              const lookAtPositions = latLongToPositions(
+              const lookAtPositions = latLongToCoords(
                 lat,
                 long,
                 globeRadiusWithOffset + 5

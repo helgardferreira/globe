@@ -3,7 +3,7 @@ import { useControls } from 'leva';
 export const useGlobeControls = () => {
   return useControls({
     dotDensity: {
-      max: 100,
+      max: 80,
       min: 1,
       step: 1,
       value: 50,
@@ -19,7 +19,7 @@ export const useGlobeControls = () => {
       value: 1,
     },
     rows: {
-      max: 1000,
+      max: 360,
       min: 1,
       step: 1,
       value: 200,

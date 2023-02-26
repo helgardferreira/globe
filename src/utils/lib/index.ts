@@ -1,2 +1,4 @@
 export * from './isDotVisible';
-export * from './latLongToVec3';
+export * from './latLongToCoords';
+export * from './normalize';
+export * from './calculateMidwayPoint';
