@@ -1,4 +1,4 @@
-import { assign, createMachine, interpret } from 'xstate';
+import { assign, createMachine, interpret, StateValueFrom } from 'xstate';
 import { type Observable, map } from 'rxjs';
 import {
   type Matrix4,
@@ -44,7 +44,7 @@ type GlobeMachineContext = {
   dotMesh?: InstancedMesh<CircleGeometry, MeshBasicMaterial>;
 };
 
-/** @xstate-layout N4IgpgJg5mDOIC5QFsCGAHAMge1RMATgHQA2uEAlgHZQDEAygKIAqA+gLICCACqwCKdmnANoAGALqJQ6bLAoAXCtipSQAD0QAmACyiiAZgCMmgKyiAbAA4AnKNMB2UfoA0IAJ6JD5+0Rv7N+tq2lvaG+tbmAL6RrmhY5IREqADGigBuYLQAqtwCzIysAOKYAPIAQgV8Jcz0YpJIIDJyisqqGgjahtpE5uaihvY6+lai2uauHgiWhkQm0TEgVNj48A1xOHiEqk0KSioN7QC04+6Ix9GxGBv4xGR41FDbsrutB4jamhOe3r7m1vYRXRhez2EyWC4gdYJYgpdJgJ7NPZtd6GSw9AaaJxWEZjL4IVGaIjWExGUzzSJAA */
+/** @xstate-layout N4IgpgJg5mDOIC5RQDYHsBGYB06CGEAlgHZQDEAygKIAqA+gLICCACnQCJM1MDaADAF1EoAA5pYhAC6E0xYSAAeiAEwAWPtgDMARmUBWADQgAnom0A2AOzYAHAE5Ny5XYvm37gL4ejqTDjwAxtIAbmBkAKosnDRUdADiADIA8gBCsexJNBT8QkggYhLSsvJKCKraqthufNp65vpGpgg22th6Xt4gxGgQcPK+WPIFUjJyeaUAtOaNiFNePuhYuGgEJFBD4iPF44iqyjMIFtY25naWLu6X5vMgA-5BhKEbhaMlu9o2VdqWH5aGJmYbMpsHY9Dp9B0PEA */
 const globeMachine = createMachine(
   {
     id: 'globe',
@@ -224,5 +224,7 @@ const globeMachine = createMachine(
     },
   }
 );
+
+export type GlobeMachineStateValue = StateValueFrom<typeof globeMachine>;
 
 export const globeService = interpret(globeMachine).start();

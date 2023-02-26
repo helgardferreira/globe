@@ -4,10 +4,11 @@ import React, {
   useContext,
 } from 'react';
 
-import { globeService } from './services';
+import { globeService, pathSpawnerService } from './services';
 
 type Services = {
   globeService: typeof globeService;
+  pathSpawnerService: typeof pathSpawnerService;
 };
 
 const GlobalServiceContext = createContext<Services | undefined>(undefined);
@@ -29,6 +30,7 @@ export const GlobalServiceProvider: React.FC<PropsWithChildren> = ({
     <GlobalServiceContext.Provider
       value={{
         globeService,
+        pathSpawnerService,
       }}
     >
       {children}

@@ -1,4 +1,5 @@
-import { assign, createMachine } from 'xstate';
+import { ActorRefFrom, createMachine } from 'xstate';
+import { assign, sendParent } from 'xstate/lib/actions';
 import { type Observable, animationFrames, map, scan, takeWhile } from 'rxjs';
 import {
   CubicBezierCurve3,
@@ -9,8 +10,9 @@ import {
 } from 'three';
 
 import { calculateMidwayPoint, latLongToCoords, normalize } from '../utils/lib';
+import { type PathSpawnerEvent } from './pathSpawner.machine';
 
-type PathLocation = {
+export type PathLocation = {
   country: string;
   region: string;
   city: string;
@@ -25,9 +27,6 @@ type UpdateDestroyEvent = { type: 'UPDATE_DESTROY'; deRenderCount: number };
 type PathMachineEvent =
   | {
       type: 'INIT';
-      startLocation: PathLocation;
-      endLocation: PathLocation;
-      globeRadius: number;
     }
   | UpdateBuildEvent
   | UpdateDestroyEvent;
@@ -45,29 +44,48 @@ type ArcHeightConfig = {
 };
 
 type PathMachineContext = {
+  pathId: string;
+  startLocation: PathLocation;
+  endLocation: PathLocation;
+  globeRadius: number;
+
   arcHeightConfig: ArcHeightConfig;
   deRenderCount: number;
   renderCount: number;
-  startLocation?: PathLocation;
-  endLocation?: PathLocation;
-  globeRadius?: number;
   animationSpeed?: number;
   pathLine?: Mesh<TubeGeometry, MeshBasicMaterial>;
 };
 
-export const pathMachine =
-  /** @xstate-layout N4IgpgJg5mDOIC5QAcCGAXAFgOgJYQBswBiASQDlSAVAbQAYBdRFAe1l3VxYDtmQAPRAEYATAFZsYutOlC6AdgDMigCwBORQBoQAT2EA2edgAcGkSrqLziuvsUBfe9rRZsAIwCuuAhFzcoxBA8YHjcAG4sANYhLjie3r7+CH4RAMYYXNz0DNl8yGwcmXyCCCoqithC8mr6aurGVnTG+tp6CCIK2CpiikKKzWry+ioN8o7OGHFePn4BAKoACgAiAIJUAKIA+gBCc6QAMku5SCD57Jw8xYjmatgiQiM9ykJi8nTdrYjGQl1qf3UvBRiKoicanSbYCBwdAAJxYOlmgWCoQi0WwsUh0LhCKSKRY6QuWUYx1Y5yKJxKxiGJhE3zKSjUIn0Ii0umuIhEkkUwxq3yEL1UxjBGKhsFh8MRi1WG02S3WAGUqAAlADyAE0SacCoSrgh9Po6Nh5KYFPohLUREohJ8EDVJA1FEpqs0xGZHE4QNwWKK8pM8tryaASgBaFpshDBiT-aMxv4OD0Y-BEf1ky4UxAqEQ2oRqH7ctTGFm9UTGYwqYUQ+IzfwpwppoPslSVOgafTGMRlYZDLPhoSF7BqHoPOh9h5SMRiCuuUXinFQWs69N6ix3PvyMTGJr6-pqbMF7CWLuGA0T4tTnC+WBnMALwMCYQtn4WZmvWmDnryPfGA-clRDIZ0Ke-LuvYQA */
+export const createPathMachine = ({
+  pathId,
+  startLocation,
+  endLocation,
+  globeRadius,
+}: {
+  pathId: string;
+  startLocation: PathLocation;
+  endLocation: PathLocation;
+  globeRadius: number;
+}) =>
+  /** @xstate-layout N4IgpgJg5mDOIC5QAcCGAXAFgOgEYFcBLAGwkIDsoBiCAe3LGwoDdaBrRtLPI0iqBC1oBjDIXoBtAAwBdaTMQpasQunHlFIAB6IATADZ92KQHYpAZnMAOAJwBWG-qm67AGhABPPbqnYALHbmAIwBfrrmUnYm1gC+Me5cOAQkZJRUAKoACgAiAIIAKgCiAPoAQukAkgAy2fKayMqq6po6CCa62EGRAZYBZs5unohWQf424+NB7SY2Ula6cQkYOBBw6ABOtB78NPSMQhzYidirsBtb-ILkrKJqkrJ1SCANKncaT63649gmQVbTPgCQS+7i8CHCdmwgX0fhmUxswKsVkWz2WJzWm22aSyeSKxWyhQAyvkAEoAeQAmo8lK9mh9EH4rOZsPoZvp5nZ9IF-uY-KDEF0bFCmbygsEuiZ9OYFijyLRTvVlvVGm8WogALRBfkIdX6FHHZJ8SjK2n0NUIWHav4dezBPxheww2Z2fVo07nLFQE1NM30i1SzpSGzmSVI4Phcz6bW6IKjCwwqwwyzBvx6+Ko7hkWAvMDe1V+hF+bC6RxWOy6AIwyJWaNBn6Jvw2PzmYOWKRpuJAA */
   createMachine(
     {
       id: 'path',
       tsTypes: {} as import('./path.machine.typegen').Typegen0,
+      initial: 'building',
+
       schema: {
         events: {} as PathMachineEvent,
         context: {} as PathMachineContext,
       },
+
       predictableActionArguments: true,
 
       context: {
+        pathId,
+        startLocation,
+        endLocation,
+        globeRadius,
         arcHeightConfig: {
           thresholds: {
             mediumToLong: 1.8,
@@ -84,15 +102,6 @@ export const pathMachine =
       },
 
       states: {
-        idle: {
-          on: {
-            INIT: {
-              target: 'building',
-              actions: 'init',
-            },
-          },
-        },
-
         building: {
           invoke: {
             src: 'animateBuild$',
@@ -106,6 +115,8 @@ export const pathMachine =
               actions: 'updateBuild',
             },
           },
+
+          entry: 'init',
         },
 
         destroying: {
@@ -124,16 +135,20 @@ export const pathMachine =
         },
 
         dispose: {
-          entry: () => {
-            console.log('dispose!');
-          },
+          type: 'final',
+          entry: 'dispose',
         },
       },
-
-      initial: 'idle',
     },
     {
       actions: {
+        dispose: sendParent(
+          ({ pathId }) =>
+            ({
+              type: 'DISPOSE_PATH',
+              pathId,
+            } as PathSpawnerEvent)
+        ),
         updateBuild: assign(({ pathLine }, { renderCount }) => {
           if (!pathLine) throw new Error('Missing path line');
 
@@ -153,10 +168,7 @@ export const pathMachine =
           };
         }),
         init: assign(
-          (
-            { arcHeightConfig },
-            { startLocation, endLocation, globeRadius }
-          ) => {
+          ({ arcHeightConfig, startLocation, endLocation, globeRadius }) => {
             const startVector = new Vector3(
               ...latLongToCoords(
                 startLocation.lat,
@@ -235,9 +247,6 @@ export const pathMachine =
               Math.ceil((18 * pathBezier.getLength()) / 9) * 3;
 
             return {
-              startLocation,
-              endLocation,
-              globeRadius,
               animationSpeed,
               pathLine,
             };
@@ -294,3 +303,5 @@ export const pathMachine =
       },
     }
   );
+
+export type PathActorRef = ActorRefFrom<ReturnType<typeof createPathMachine>>;

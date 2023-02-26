@@ -5,6 +5,7 @@
         '@@xstate/typegen': true;
         internalEvents: {
           "done.invoke.path.building:invocation[0]": { type: "done.invoke.path.building:invocation[0]"; data: unknown; __tip: "See the XState TS docs to learn how to strongly type this." };
+"done.invoke.path.destroying:invocation[0]": { type: "done.invoke.path.destroying:invocation[0]"; data: unknown; __tip: "See the XState TS docs to learn how to strongly type this." };
 "xstate.init": { type: "xstate.init" };
         };
         invokeSrcNameMap: {
@@ -18,7 +19,8 @@
           services: never;
         };
         eventsCausingActions: {
-          "init": "INIT";
+          "dispose": "done.invoke.path.destroying:invocation[0]";
+"init": "UPDATE_BUILD" | "xstate.init";
 "updateBuild": "UPDATE_BUILD";
 "updateDestroy": "UPDATE_DESTROY";
         };
@@ -29,10 +31,10 @@
           
         };
         eventsCausingServices: {
-          "animateBuild$": "INIT" | "UPDATE_BUILD";
+          "animateBuild$": "UPDATE_BUILD" | "xstate.init";
 "animateDestroy$": "UPDATE_DESTROY" | "done.invoke.path.building:invocation[0]";
         };
-        matchesStates: "building" | "destroying" | "dispose" | "idle";
+        matchesStates: "building" | "destroying" | "dispose";
         tags: never;
       }
   

@@ -24,5 +24,11 @@ export const useGlobeControls = () => {
       step: 1,
       value: 200,
     },
+    maxPaths: {
+      max: 100,
+      min: 1,
+      step: 1,
+      value: 10,
+    },
   });
 };
