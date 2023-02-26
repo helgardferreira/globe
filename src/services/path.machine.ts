@@ -47,7 +47,6 @@ type PathMachineContext = {
   pathId: string;
   startLocation: PathLocation;
   endLocation: PathLocation;
-  globeRadius: number;
 
   arcHeightConfig: ArcHeightConfig;
   deRenderCount: number;
@@ -60,12 +59,10 @@ export const createPathMachine = ({
   pathId,
   startLocation,
   endLocation,
-  globeRadius,
 }: {
   pathId: string;
   startLocation: PathLocation;
   endLocation: PathLocation;
-  globeRadius: number;
 }) =>
   /** @xstate-layout N4IgpgJg5mDOIC5QAcCGAXAFgOgEYFcBLAGwkIDsoBiCAe3LGwoDdaBrRtLPI0iqBC1oBjDIXoBtAAwBdaTMQpasQunHlFIAB6IATADZ92KQHYpAZnMAOAJwBWG-qm67AGhABPPbqnYALHbmAIwBfrrmUnYm1gC+Me5cOAQkZJRUAKoACgAiAIIAKgCiAPoAQukAkgAy2fKayMqq6po6CCa62EGRAZYBZs5unohWQf424+NB7SY2Ula6cQkYOBBw6ABOtB78NPSMQhzYidirsBtb-ILkrKJqkrJ1SCANKncaT63649gmQVbTPgCQS+7i8CHCdmwgX0fhmUxswKsVkWz2WJzWm22aSyeSKxWyhQAyvkAEoAeQAmo8lK9mh9EH4rOZsPoZvp5nZ9IF-uY-KDEF0bFCmbygsEuiZ9OYFijyLRTvVlvVGm8WogALRBfkIdX6FHHZJ8SjK2n0NUIWHav4dezBPxheww2Z2fVo07nLFQE1NM30i1SzpSGzmSVI4Phcz6bW6IKjCwwqwwyzBvx6+Ko7hkWAvMDe1V+hF+bC6RxWOy6AIwyJWaNBn6Jvw2PzmYOWKRpuJAA */
   createMachine(
@@ -85,7 +82,6 @@ export const createPathMachine = ({
         pathId,
         startLocation,
         endLocation,
-        globeRadius,
         arcHeightConfig: {
           thresholds: {
             mediumToLong: 1.8,
@@ -167,91 +163,83 @@ export const createPathMachine = ({
             deRenderCount,
           };
         }),
-        init: assign(
-          ({ arcHeightConfig, startLocation, endLocation, globeRadius }) => {
-            const startVector = new Vector3(
-              ...latLongToCoords(
-                startLocation.lat,
-                startLocation.long,
-                globeRadius
-              )
-            );
-            const endVector = new Vector3(
-              ...latLongToCoords(endLocation.lat, endLocation.long, globeRadius)
-            );
+        init: assign(({ arcHeightConfig, startLocation, endLocation }) => {
+          const startVector = new Vector3(
+            ...latLongToCoords(startLocation.lat, startLocation.long, 1)
+          );
+          const endVector = new Vector3(
+            ...latLongToCoords(endLocation.lat, endLocation.long, 1)
+          );
 
-            const tubeDistance = startVector.distanceTo(endVector);
+          const tubeDistance = startVector.distanceTo(endVector);
 
-            const arcHeight = normalize(
-              tubeDistance,
-              0,
-              2 * globeRadius,
-              globeRadius,
-              // eslint-disable-next-line no-nested-ternary
-              tubeDistance >
-                arcHeightConfig.thresholds.mediumToLong * globeRadius
-                ? arcHeightConfig.heights.long
-                : tubeDistance >
-                  arcHeightConfig.thresholds.shortToMedium * globeRadius
-                ? arcHeightConfig.heights.medium
-                : arcHeightConfig.heights.short
-            );
+          const arcHeight = normalize(
+            tubeDistance,
+            0,
+            2,
+            1,
+            // eslint-disable-next-line no-nested-ternary
+            tubeDistance > arcHeightConfig.thresholds.mediumToLong
+              ? arcHeightConfig.heights.long
+              : tubeDistance > arcHeightConfig.thresholds.shortToMedium
+              ? arcHeightConfig.heights.medium
+              : arcHeightConfig.heights.short
+          );
 
-            const [midLat, midLong] = calculateMidwayPoint(
-              startLocation.lat,
-              startLocation.long,
-              endLocation.lat,
-              endLocation.long
-            );
+          const [midLat, midLong] = calculateMidwayPoint(
+            startLocation.lat,
+            startLocation.long,
+            endLocation.lat,
+            endLocation.long
+          );
 
-            const midVector = new Vector3(
-              ...latLongToCoords(midLat, midLong, globeRadius * arcHeight)
-            );
+          const midVector = new Vector3(
+            ...latLongToCoords(midLat, midLong, arcHeight)
+          );
 
-            const controlPoint1 = new Vector3().copy(midVector);
-            const controlPoint2 = new Vector3().copy(midVector);
+          const controlPoint1 = new Vector3().copy(midVector);
+          const controlPoint2 = new Vector3().copy(midVector);
 
-            const t1 = 0.15;
-            const t2 = 0.85;
+          const t1 = 0.15;
+          const t2 = 0.85;
 
-            const interimBezier = new CubicBezierCurve3(
-              startVector,
-              controlPoint1,
-              controlPoint2,
-              endVector
-            );
+          const interimBezier = new CubicBezierCurve3(
+            startVector,
+            controlPoint1,
+            controlPoint2,
+            endVector
+          );
 
-            interimBezier.getPoint(t1, controlPoint1);
-            interimBezier.getPoint(t2, controlPoint2);
-            controlPoint1.multiplyScalar(arcHeight);
-            controlPoint2.multiplyScalar(arcHeight);
+          interimBezier.getPoint(t1, controlPoint1);
+          interimBezier.getPoint(t2, controlPoint2);
+          controlPoint1.multiplyScalar(arcHeight);
+          controlPoint2.multiplyScalar(arcHeight);
 
-            const pathBezier = new CubicBezierCurve3(
-              startVector,
-              controlPoint1,
-              controlPoint2,
-              endVector
-            );
+          const pathBezier = new CubicBezierCurve3(
+            startVector,
+            controlPoint1,
+            controlPoint2,
+            endVector
+          );
 
-            const tubeSegmentLength = Math.trunc(100 * pathBezier.getLength());
-            const pathLine = new Mesh(
-              new TubeGeometry(pathBezier, tubeSegmentLength, 0.004, 3, false),
-              new MeshBasicMaterial({
-                color: 0x0000ff,
-              })
-            );
+          const tubeSegmentLength = Math.trunc(100 * pathBezier.getLength());
+          const pathLine = new Mesh(
+            new TubeGeometry(pathBezier, tubeSegmentLength, 0.004, 3, false),
+            new MeshBasicMaterial({
+              color: 0xff00dc,
+            })
+          );
 
-            pathLine.geometry.setDrawRange(0, 0);
+          pathLine.geometry.setDrawRange(0, 0);
 
-            const animationSpeed =
-              Math.ceil((18 * pathBezier.getLength()) / 9) * 3;
+          const animationSpeed =
+            Math.ceil((18 * pathBezier.getLength()) / 9) * 3;
 
-            return {
-              animationSpeed,
-              pathLine,
-            };
-          }
-        ),
+          return {
+            animationSpeed,
+            pathLine,
+          };
+        }),
       },
       services: {
         animateBuild$: ({

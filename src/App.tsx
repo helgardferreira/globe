@@ -21,7 +21,10 @@ function App() {
             position={new Vector3(200, 200, 200)}
             zoom={270}
           />
-          <OrbitControls />
+          <OrbitControls
+            minPolarAngle={Math.PI * (2 / 6)}
+            maxPolarAngle={Math.PI * (4 / 6)}
+          />
           <Game />
         </Canvas>
       </GlobalServiceProvider>

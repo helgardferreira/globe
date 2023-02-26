@@ -23,8 +23,6 @@ type SetMapDataEvent = {
 type UpdateGlobeDotsEvent = {
   type: 'UPDATE_GLOBE_DOTS';
   dotDensity: number;
-  dotOffset: number;
-  globeRadius: number;
   rows: number;
 };
 
@@ -35,8 +33,6 @@ type GlobeMachineEvent =
 
 type GlobeMachineContext = {
   dotDensity: number;
-  dotOffset: number;
-  globeRadius: number;
   rows: number;
   dotSize: number;
   mapSize?: MapSize;
@@ -59,9 +55,7 @@ const globeMachine = createMachine(
 
     context: {
       dotDensity: 50,
-      dotOffset: 0,
       dotSize: 150,
-      globeRadius: 1,
       rows: 200,
     },
 
@@ -96,20 +90,14 @@ const globeMachine = createMachine(
         mapSize,
         imageData,
       })),
-      updateGlobeDots: assign(
-        (_, { dotDensity, dotOffset, globeRadius, rows }) => ({
-          dotDensity,
-          dotOffset,
-          globeRadius,
-          rows,
-        })
-      ),
+      updateGlobeDots: assign((_, { dotDensity, rows }) => ({
+        dotDensity,
+        rows,
+      })),
       plotGlobeDots: assign(
         ({
           rows,
-          globeRadius,
           dotDensity,
-          dotOffset,
           dotSize,
           mapSize,
           imageData,
@@ -121,11 +109,9 @@ const globeMachine = createMachine(
             prevDotMesh.geometry.dispose();
             prevDotMesh.material.dispose();
           }
-          const globeRadiusWithOffset = globeRadius + dotOffset;
           const dotMatrices: Matrix4[] = [];
           for (let lat = -90; lat <= 90; lat += 180 / rows) {
-            const radius =
-              Math.cos(Math.abs(lat) * DEG2RAD) * globeRadiusWithOffset;
+            const radius = Math.cos(Math.abs(lat) * DEG2RAD);
             const circumference = radius * Math.PI * 2;
             const dotsForLat = circumference * dotDensity;
             const tempDot = new Object3D();
@@ -137,19 +123,11 @@ const globeMachine = createMachine(
                 continue;
               }
 
-              const positions = latLongToCoords(
-                lat,
-                long,
-                globeRadiusWithOffset
-              );
+              const positions = latLongToCoords(lat, long, 1);
 
               tempDot.position.set(positions[0], positions[1], positions[2]);
 
-              const lookAtPositions = latLongToCoords(
-                lat,
-                long,
-                globeRadiusWithOffset + 5
-              );
+              const lookAtPositions = latLongToCoords(lat, long, 6);
               tempDot.lookAt(
                 lookAtPositions[0],
                 lookAtPositions[1],
@@ -162,10 +140,10 @@ const globeMachine = createMachine(
             }
           }
 
-          const dotRadius = globeRadius / dotSize;
+          const dotRadius = 1 / dotSize;
           const circleGeometry = new CircleGeometry(dotRadius, 5);
           const circleMaterial = new MeshBasicMaterial({
-            color: 0xff0000,
+            color: 0xff00dc,
           });
           circleMaterial.side = DoubleSide;
 

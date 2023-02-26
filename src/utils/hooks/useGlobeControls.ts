@@ -8,16 +8,6 @@ export const useGlobeControls = () => {
       step: 1,
       value: 50,
     },
-    dotOffset: {
-      max: 1.5,
-      min: 0,
-      value: 0,
-    },
-    globeRadius: {
-      max: 1.4,
-      min: 1,
-      value: 1,
-    },
     rows: {
       max: 360,
       min: 1,

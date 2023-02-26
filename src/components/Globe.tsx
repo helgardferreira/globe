@@ -11,18 +11,15 @@ export const Globe = () => {
   const dotMesh = useSelector(globeService, (state) => state.context.dotMesh);
   const paths = useSelector(pathSpawnerService, (state) => state.context.paths);
 
-  const { dotDensity, dotOffset, globeRadius, rows, maxPaths } =
-    useGlobeControls();
+  const { dotDensity, rows, maxPaths } = useGlobeControls();
 
   useEffect(() => {
     globeService.send({
       type: 'UPDATE_GLOBE_DOTS',
       dotDensity,
-      dotOffset,
-      globeRadius,
       rows,
     });
-  }, [dotDensity, dotOffset, globeRadius, rows, globeService]);
+  }, [dotDensity, rows, globeService]);
 
   useEffect(() => {
     pathSpawnerService.send({
@@ -33,15 +30,13 @@ export const Globe = () => {
 
   return (
     <group rotation={[0, 290 * DEG2RAD, 0]}>
-      <group scale={[globeRadius, globeRadius, globeRadius]}>
-        <mesh>
-          <sphereGeometry args={[1, 64, 64]} />
-          <meshStandardMaterial color={0xffffff} />
-        </mesh>
-        {paths.map(({ id, pathActorRef }) => (
-          <Path key={id} pathActorRef={pathActorRef} />
-        ))}
-      </group>
+      <mesh>
+        <sphereGeometry args={[1, 64, 64]} />
+        <meshBasicMaterial transparent opacity={0.7} color={0x000000} />
+      </mesh>
+      {paths.map(({ id, pathActorRef }) => (
+        <Path key={id} pathActorRef={pathActorRef} />
+      ))}
       {dotMesh && <primitive object={dotMesh} />}
     </group>
   );

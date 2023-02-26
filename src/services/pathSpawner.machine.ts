@@ -16,7 +16,6 @@ import { GlobeMachineStateValue, globeService } from './globe.machine';
 
 type SetDataEvent = {
   type: 'SET_DATA';
-  globeRadius: number;
   locations: PathLocation[];
 };
 type SpawnPathEvent = {
@@ -33,7 +32,6 @@ export type PathSpawnerEvent =
   | { type: 'UPDATE_MAX_PATHS'; value: number };
 
 type PathSpawnerContext = {
-  globeRadius?: number;
   locations?: PathLocation[];
   pathData?: {
     id: string;
@@ -109,7 +107,7 @@ const pathSpawnerMachine = createMachine(
   },
   {
     actions: {
-      setData: assign((_, { globeRadius, locations }) => {
+      setData: assign((_, { locations }) => {
         const pathData = [...new Array(200).keys()].map(() => {
           const startIndex = Math.floor(Math.random() * locations.length);
           let endIndex = Math.floor(Math.random() * locations.length);
@@ -129,33 +127,27 @@ const pathSpawnerMachine = createMachine(
         });
 
         return {
-          globeRadius,
           locations,
           pathData,
         };
       }),
-      spawnPath: assign(
-        ({ paths, globeRadius }, { pathId, startLocation, endLocation }) => {
-          if (!globeRadius) throw new Error('Missing globe radius');
+      spawnPath: assign(({ paths }, { pathId, startLocation, endLocation }) => {
+        const pathActorRef: PathActorRef = spawn(
+          createPathMachine({
+            pathId,
+            startLocation,
+            endLocation,
+          })
+        );
 
-          const pathActorRef: PathActorRef = spawn(
-            createPathMachine({
-              pathId,
-              startLocation,
-              endLocation,
-              globeRadius,
-            })
-          );
+        const newPaths = paths.concat({ id: pathId, pathActorRef });
 
-          const newPaths = paths.concat({ id: pathId, pathActorRef });
+        paths$.next(newPaths);
 
-          paths$.next(newPaths);
-
-          return {
-            paths: newPaths,
-          };
-        }
-      ),
+        return {
+          paths: newPaths,
+        };
+      }),
       disposePath: assign(({ paths }, { pathId }) => {
         const index = paths.findIndex((path) => path.id === pathId);
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -177,13 +169,12 @@ const pathSpawnerMachine = createMachine(
         from(globeService).pipe(
           filter(({ value }) => (value as GlobeMachineStateValue) === 'active'),
           take(1),
-          mergeMap(({ context: { globeRadius } }) =>
+          mergeMap(() =>
             from(import('../assets/data/curated-countries.json')).pipe(
               map(
                 ({ default: locations }) =>
                   ({
                     type: 'SET_DATA',
-                    globeRadius,
                     locations,
                   } as SetDataEvent)
               )
