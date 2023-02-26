@@ -7,23 +7,20 @@ import { useGlobeControls } from '../utils/hooks';
 import { Path } from './Path';
 
 export const Globe = () => {
-  const { globeBuilderService } = useServices();
-  const dotMesh = useSelector(
-    globeBuilderService,
-    (state) => state.context.dotMesh
-  );
+  const { globeService } = useServices();
+  const dotMesh = useSelector(globeService, (state) => state.context.dotMesh);
 
   const { dotDensity, dotOffset, globeRadius, rows } = useGlobeControls();
 
   useEffect(() => {
-    globeBuilderService.send({
+    globeService.send({
       type: 'UPDATE_GLOBE_DOTS',
       dotDensity,
       dotOffset,
       globeRadius,
       rows,
     });
-  }, [dotDensity, dotOffset, globeRadius, rows, globeBuilderService]);
+  }, [dotDensity, dotOffset, globeRadius, rows, globeService]);
 
   return (
     <group rotation={[0, 290 * DEG2RAD, 0]}>

@@ -1,1 +1,1 @@
-export * from './globeBuilder.machine';
+export * from './globe.machine';

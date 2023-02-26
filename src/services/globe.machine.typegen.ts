@@ -7,7 +7,7 @@
           "xstate.init": { type: "xstate.init" };
         };
         invokeSrcNameMap: {
-          "fetchMap$": "done.invoke.globeBuilder.loading:invocation[0]";
+          "fetchMap$": "done.invoke.globe.loading:invocation[0]";
         };
         missingImplementations: {
           actions: never;

@@ -28,12 +28,12 @@ type UpdateGlobeDotsEvent = {
   rows: number;
 };
 
-type GlobeBuilderMachineEvent =
+type GlobeMachineEvent =
   | { type: 'LOAD'; url: string }
   | SetMapDataEvent
   | UpdateGlobeDotsEvent;
 
-type GlobeBuilderMachineContext = {
+type GlobeMachineContext = {
   dotDensity: number;
   dotOffset: number;
   globeRadius: number;
@@ -45,13 +45,13 @@ type GlobeBuilderMachineContext = {
 };
 
 /** @xstate-layout N4IgpgJg5mDOIC5QFsCGAHAMge1RMATgHQA2uEAlgHZQDEAygKIAqA+gLICCACqwCKdmnANoAGALqJQ6bLAoAXCtipSQAD0QAmACyiiAZgCMmgKyiAbAA4AnKNMB2UfoA0IAJ6JD5+0Rv7N+tq2lvaG+tbmAL6RrmhY5IREqADGigBuYLQAqtwCzIysAOKYAPIAQgV8Jcz0YpJIIDJyisqqGgjahtpE5uaihvY6+lai2uauHgiWhkQm0TEgVNj48A1xOHiEqk0KSioN7QC04+6Ix9GxGBv4xGR41FDbsrutB4jamhOe3r7m1vYRXRhez2EyWC4gdYJYgpdJgJ7NPZtd6GSw9AaaJxWEZjL4IVGaIjWExGUzzSJAA */
-const globeBuilderMachine = createMachine(
+const globeMachine = createMachine(
   {
-    id: 'globeBuilder',
-    tsTypes: {} as import('./globeBuilder.machine.typegen').Typegen0,
+    id: 'globe',
+    tsTypes: {} as import('./globe.machine.typegen').Typegen0,
     schema: {
-      events: {} as GlobeBuilderMachineEvent,
-      context: {} as GlobeBuilderMachineContext,
+      events: {} as GlobeMachineEvent,
+      context: {} as GlobeMachineContext,
     },
     predictableActionArguments: true,
 
@@ -225,4 +225,4 @@ const globeBuilderMachine = createMachine(
   }
 );
 
-export const globeBuilderService = interpret(globeBuilderMachine).start();
+export const globeService = interpret(globeMachine).start();
