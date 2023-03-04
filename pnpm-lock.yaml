@@ -1,7 +1,7 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@react-three/fiber': 8.11.2
+  '@react-three/fiber': 8.11.5
   '@types/node': ^18.14.1
   '@types/picomatch': ^2.3.0
   '@types/react': ^18.0.27
@@ -32,7 +32,7 @@ specifiers:
   xstate: ^4.36.0
 
 dependencies:
-  '@react-three/fiber': 8.11.2_xor7byvqlg4baqj6ymfbcmaax4
+  '@react-three/fiber': 8.11.5_xor7byvqlg4baqj6ymfbcmaax4
   '@xstate/react': 3.2.1_5qd7b23w5dgywqr3h5a5vxtscq
   leva: 0.9.34_biqbaboplfbrettd7655fr4n2y
   picomatch: 2.3.1
@@ -835,8 +835,8 @@ packages:
       '@babel/runtime': 7.21.0
     dev: false
 
-  /@react-three/fiber/8.11.2_xor7byvqlg4baqj6ymfbcmaax4:
-    resolution: {integrity: sha512-cJibYk8LtDS3QlDbmN2GzrB3YSuRaUxkOmy69jAs70sqjK/dClWbNaVJu6T/YcWhPopl+hMf+M24Uh+HEtVj2A==}
+  /@react-three/fiber/8.11.5_xor7byvqlg4baqj6ymfbcmaax4:
+    resolution: {integrity: sha512-Z+/hNPDy71q7xiGQQwngpLhoyjqPsuObs/Wbk2nYDZ0SC6rg3nCQBcIR6cf1+ONx1EP53L5lbuxcr+chkdGGmQ==}
     peerDependencies:
       expo: '>=43.0'
       expo-asset: '>=8.4'
