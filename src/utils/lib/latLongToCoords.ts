@@ -8,5 +8,5 @@ export const latLongToCoords = (lat: number, long: number, radius: number) => {
     radius * Math.sin(phi) * Math.cos(theta) * -1,
     radius * Math.cos(phi),
     radius * Math.sin(phi) * Math.sin(theta),
-  ];
+  ] as const;
 };
