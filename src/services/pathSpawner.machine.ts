@@ -1,18 +1,15 @@
-import { assign, createMachine, interpret, spawn } from 'xstate';
+import { ActorRefFrom, assign, createMachine, sendParent, spawn } from 'xstate';
 import {
   type Observable,
   filter,
   from,
   map,
-  mergeMap,
-  take,
   interval,
   scan,
   BehaviorSubject,
   withLatestFrom,
 } from 'rxjs';
 import { createPathMachine, PathActorRef, PathLocation } from './path.machine';
-import { GlobeMachineStateValue, globeService } from './globe.machine';
 
 type SetDataEvent = {
   type: 'SET_DATA';
@@ -25,11 +22,26 @@ type SpawnPathEvent = {
   endLocation: PathLocation;
 };
 
+export type PathWithId = {
+  id: string;
+  pathActorRef: PathActorRef;
+};
+
+export type UpdatePathsEvent = {
+  type: 'UPDATE_PATHS';
+  paths: PathWithId[];
+};
+
+export type UpdateMaxPathsEvent = {
+  type: 'UPDATE_MAX_PATHS';
+  maxPaths: number;
+};
+
 export type PathSpawnerEvent =
   | SetDataEvent
   | SpawnPathEvent
   | { type: 'DISPOSE_PATH'; pathId: string }
-  | { type: 'UPDATE_MAX_PATHS'; value: number };
+  | UpdateMaxPathsEvent;
 
 type PathSpawnerContext = {
   locations?: PathLocation[];
@@ -38,18 +50,15 @@ type PathSpawnerContext = {
     startLocation: PathLocation;
     endLocation: PathLocation;
   }[];
-  paths: {
-    id: string;
-    pathActorRef: PathActorRef;
-  }[];
+  paths: PathWithId[];
 };
 
 const paths$ = new BehaviorSubject<PathSpawnerContext['paths']>([]);
 
 let maxPaths = 10;
 
-/** @xstate-layout N4IgpgJg5mDOIC5QAcCGAXAFgZTQdwDswAnAOgBsB7VCASwKgGJsBRAFQH0ARAQTZ4DaABgC6iFJVi10tSgXEgAHogBMAZgBspAJwBGACxCArCoDsG7RpUqNagDQgAnok1DSp7dv0bTu31ZMAX0CHNCxcVEISUlQAYxkANzBmAAUeAHUAOQ40tgAJYTEkEGRJaVl5YuUEQxVSFX0VXSNvW0bbB2cEM31SQwCNIW0jAA5tFRHg0IwcfCIyOMTkrgBJbBSAeVYcvgLRBVKpGTkFarVtU1JdEbUjfz0R69NOxD9L4bVdNSEPCzVTH5TEozCJRBbxWhJRgAVRSvDYLA4AFkeAANHb5bCFA5lY6VUBnUy9IQjIzaISGck-fR+F4IR6kIxCZnGX7af6AoEESgQOAHEFzEg4o4VU6IAC0GjpkqBYVmkXmFGodAYwvKJyqiEadNc7nMFJG+jUKk8gyMsoFCuii0hYDVeLFCH+xPZphUo30F3+RiMOtMRlIpPZj3O+kNIw0wWCQA */
-const pathSpawnerMachine = createMachine(
+/** @xstate-layout N4IgpgJg5mDOIC5QAcCGAXAFgZTQdwDswAnAOgBsB7VCASwKgGJsBRAFQH0ARAQTZ4DaABgC6iFJVi10tSgXEgAHogBMAZgBspAJwBGACxCA7LqH7tG7UbMAaEAE9E+g6WsBWI241qhmoSoAOAF8guzQsXFRCElJUAGMZADcwZgAFHgB1ADkOdLYACWExJBBkSWlZeRLlBEMVUhV9FWamgKMVbQC1O0cEH11SNTdtZwDjdrUDNxCwjBx8IjJ4pJSuAElsVIB5Vly+QtEFMqkZOQUatStSXS6NZoD1FS9dHsRdIyMdN0n9DSEzb7qGalOaRaJLBK0ZKMACqqV4bBYHAAsjwABp7ArYIpHcqnKqgC5GfSkIQBYaWIwPDT6NRPV4IAIDNz-f5-TSNNy6EKhEAESgQOBHUELEi4k6Vc6IAC0GgZsuB4XmUUWFGodAY4oqZ2qThUDOcJI0Dx8ahMGg0ujuipFKpiyyhYC1+KlfWJpO0Zva+jqgQNHVcGi832NAT0amCPKAA */
+export const pathSpawnerMachine = createMachine(
   {
     id: 'pathSpawner',
     initial: 'loading',
@@ -87,13 +96,13 @@ const pathSpawnerMachine = createMachine(
           SPAWN_PATH: {
             target: 'active',
             internal: true,
-            actions: 'spawnPath',
+            actions: ['spawnPath', 'updateGlobe'],
           },
 
           DISPOSE_PATH: {
             target: 'active',
             internal: true,
-            actions: 'disposePath',
+            actions: ['disposePath', 'updateGlobe'],
           },
 
           UPDATE_MAX_PATHS: {
@@ -160,25 +169,25 @@ const pathSpawnerMachine = createMachine(
           paths: newPaths,
         };
       }),
-      updateMaxPaths: (_, { value }) => {
+      updateMaxPaths: (_, { maxPaths: value }) => {
         maxPaths = value;
       },
+      updateGlobe: sendParent(({ paths }) => {
+        return {
+          type: 'UPDATE_PATHS',
+          paths,
+        };
+      }),
     },
     services: {
       loadData$: (): Observable<SetDataEvent> =>
-        from(globeService).pipe(
-          filter(({ value }) => (value as GlobeMachineStateValue) === 'active'),
-          take(1),
-          mergeMap(() =>
-            from(import('../assets/data/curated-countries.json')).pipe(
-              map(
-                ({ default: locations }) =>
-                  ({
-                    type: 'SET_DATA',
-                    locations,
-                  } as SetDataEvent)
-              )
-            )
+        from(import('../assets/data/curated-countries.json')).pipe(
+          map(
+            ({ default: locations }) =>
+              ({
+                type: 'SET_DATA',
+                locations,
+              } as SetDataEvent)
           )
         ),
       spawnPaths$: ({ pathData }): Observable<SpawnPathEvent> => {
@@ -208,4 +217,4 @@ const pathSpawnerMachine = createMachine(
   }
 );
 
-export const pathSpawnerService = interpret(pathSpawnerMachine).start();
+export type PathSpawnerActor = ActorRefFrom<typeof pathSpawnerMachine>;

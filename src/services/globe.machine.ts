@@ -1,4 +1,10 @@
-import { assign, createMachine, interpret, StateValueFrom } from 'xstate';
+import {
+  assign,
+  createMachine,
+  forwardTo,
+  SendAction,
+  StateValueFrom,
+} from 'xstate';
 import { type Observable, map } from 'rxjs';
 import {
   type Matrix4,
@@ -13,6 +19,12 @@ import { DEG2RAD } from 'three/src/math/MathUtils';
 import mapUrl from '../assets/photos/map.png';
 import { fromImageLoad } from '../utils/rxjs';
 import { type MapSize, isDotVisible, latLongToCoords } from '../utils/lib';
+import {
+  pathSpawnerMachine,
+  PathWithId,
+  UpdateMaxPathsEvent,
+  UpdatePathsEvent,
+} from './pathSpawner.machine';
 
 type SetMapDataEvent = {
   type: 'SET_MAP_DATA';
@@ -29,7 +41,9 @@ type UpdateGlobeDotsEvent = {
 type GlobeMachineEvent =
   | { type: 'LOAD'; url: string }
   | SetMapDataEvent
-  | UpdateGlobeDotsEvent;
+  | UpdateGlobeDotsEvent
+  | UpdatePathsEvent
+  | UpdateMaxPathsEvent;
 
 type GlobeMachineContext = {
   dotDensity: number;
@@ -38,10 +52,11 @@ type GlobeMachineContext = {
   mapSize?: MapSize;
   imageData?: ImageData;
   dotMesh?: InstancedMesh<CircleGeometry, MeshBasicMaterial>;
+  paths: PathWithId[];
 };
 
-/** @xstate-layout N4IgpgJg5mDOIC5RQDYHsBGYB06CGEAlgHZQDEAygKIAqA+gLICCACnQCJM1MDaADAF1EoAA5pYhAC6E0xYSAAeiAEwAWPtgDMARmUBWADQgAnom0A2AOzYAHAE5Ny5XYvm37gL4ejqTDjwAxtIAbmBkAKosnDRUdADiADIA8gBCsexJNBT8QkggYhLSsvJKCKraqthufNp65vpGpgg22th6Xt4gxGgQcPK+WPIFUjJyeaUAtOaNiFNePuhYuGgEJFBD4iPF44iqyjMIFtY25naWLu6X5vMgA-5BhKEbhaMlu9o2VdqWH5aGJmYbMpsHY9Dp9B0PEA */
-const globeMachine = createMachine(
+/** @xstate-layout N4IgpgJg5mDOIC5RQDYHsBGYB06CGEAlgHZQDEAygKIAqA+gLICCACnQCJM1MDaADAF1EoAA5pYhAC6E0xYSAAeiAEwAWPtgDMARmUBWPgA4AnADYA7NsOq9mgDQgAnok3nV2ZedN9zhzZtVfPm0AXxCHVEwcPABjaQA3MDIAVRZOGio6AHEAGQB5ACFM9jyaCn4hJBAxCWlZeSUEVW1NbFNtc2U+VWM+HT5TQwdnBE93dVN9TT7jZQDDPTCI9CxsWISk1PTMli4ACXLBeRqpGTkqxtVNQw92zum9az0O4cQO82xjW20rH71lAF9JYgSKrdaERIpNJcTLMAAadF2NAOFWO4lO9QuiGaHwCXnMmmMXm0xmMrwQhm02B6pKJrjmmlMzzC4RAxDQEDg8lBYDRtTODUQAFpTOSRdg+JLJbNJqpTDptEzgTzcGgCCQoHyMedQJdlOTrh9OsYOsZDIZzLZrsqVtE4hDeVUTnUdYpsaplNgLQYWuoLTpRU5sXxPZT9MFdHw9LNNCyQkA */
+export const globeMachine = createMachine(
   {
     id: 'globe',
     tsTypes: {} as import('./globe.machine.typegen').Typegen0,
@@ -57,6 +72,7 @@ const globeMachine = createMachine(
       dotDensity: 50,
       dotSize: 150,
       rows: 200,
+      paths: [],
     },
 
     states: {
@@ -67,19 +83,35 @@ const globeMachine = createMachine(
         on: {
           SET_MAP_DATA: {
             target: 'active',
-            actions: 'setMapData',
+            actions: ['setMapData', 'plotGlobeDots'],
           },
         },
       },
 
       active: {
-        entry: 'plotGlobeDots',
-
         on: {
           UPDATE_GLOBE_DOTS: {
-            actions: 'updateGlobeDots',
+            actions: ['updateGlobeDots', 'plotGlobeDots'],
             target: 'active',
+            internal: true,
           },
+
+          UPDATE_PATHS: {
+            target: 'active',
+            internal: true,
+            actions: 'updatePaths',
+          },
+
+          UPDATE_MAX_PATHS: {
+            target: 'active',
+            internal: true,
+            actions: 'updateMaxPaths',
+          },
+        },
+
+        invoke: {
+          id: 'pathSpawner',
+          src: 'pathSpawner',
         },
       },
     },
@@ -163,6 +195,8 @@ const globeMachine = createMachine(
           };
         }
       ),
+      updatePaths: assign((_, { paths }) => ({ paths })),
+      updateMaxPaths: forwardTo('pathSpawner') as SendAction<any, any, any>,
     },
     services: {
       fetchMap$: (): Observable<SetMapDataEvent> => {
@@ -199,10 +233,9 @@ const globeMachine = createMachine(
           })
         );
       },
+      pathSpawner: pathSpawnerMachine,
     },
   }
 );
 
 export type GlobeMachineStateValue = StateValueFrom<typeof globeMachine>;
-
-export const globeService = interpret(globeMachine).start();
