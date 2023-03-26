@@ -1,6 +1,6 @@
 {
   "name": "@helgardf/globe",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "author": "Helgard Richard Ferreira <https://helgard.dev/>",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
