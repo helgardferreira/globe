@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useInterpret, useSelector } from '@xstate/react';
 import { DEG2RAD } from 'three/src/math/MathUtils';
 
-import { useGlobeControls } from '../utils/hooks';
 import { Path } from './Path';
 import { globeMachine } from '../services';
 
@@ -11,22 +10,20 @@ export const Globe = () => {
   const dotMesh = useSelector(globeService, ({ context }) => context.dotMesh);
   const paths = useSelector(globeService, ({ context }) => context.paths);
 
-  const { dotDensity, rows, maxPaths } = useGlobeControls();
-
   useEffect(() => {
     globeService.send({
       type: 'UPDATE_GLOBE_DOTS',
-      dotDensity,
-      rows,
+      dotDensity: 40,
+      rows: 180,
     });
-  }, [dotDensity, globeService, rows]);
+  }, [globeService]);
 
   useEffect(() => {
     globeService.send({
       type: 'UPDATE_MAX_PATHS',
-      value: maxPaths,
+      maxPaths: 10,
     });
-  }, [globeService, maxPaths]);
+  }, [globeService]);
 
   return (
     <group rotation={[0, 290 * DEG2RAD, 0]}>

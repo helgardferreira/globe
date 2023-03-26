@@ -34,7 +34,7 @@ export type UpdatePathsEvent = {
 
 export type UpdateMaxPathsEvent = {
   type: 'UPDATE_MAX_PATHS';
-  value: number;
+  maxPaths: number;
 };
 
 export type PathSpawnerEvent =
@@ -169,7 +169,7 @@ export const pathSpawnerMachine = createMachine(
           paths: newPaths,
         };
       }),
-      updateMaxPaths: (_, { value }) => {
+      updateMaxPaths: (_, { maxPaths: value }) => {
         maxPaths = value;
       },
       updateGlobe: sendParent(({ paths }) => {
