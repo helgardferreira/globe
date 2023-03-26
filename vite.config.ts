@@ -23,6 +23,9 @@ export default defineConfig({
         'rxjs',
       ],
       output: {
+        globals: {
+          react: 'React',
+        },
         sourcemapExcludeSources: true,
       },
     },

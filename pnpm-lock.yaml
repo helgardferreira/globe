@@ -31,13 +31,13 @@ specifiers:
   xstate: ^4.36.0
 
 dependencies:
-  '@react-three/fiber': 8.11.5_xor7byvqlg4baqj6ymfbcmaax4
-  '@xstate/react': 3.2.1_5qd7b23w5dgywqr3h5a5vxtscq
+  '@react-three/fiber': 8.12.0_xor7byvqlg4baqj6ymfbcmaax4
+  '@xstate/react': 3.2.1_ksnyljlrkmwcc2x7ndl6cyswga
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
   rxjs: 7.8.0
   three: 0.149.0
-  xstate: 4.36.0
+  xstate: 4.37.1
 
 devDependencies:
   '@types/node': 18.14.1
@@ -591,8 +591,8 @@ packages:
       fastq: 1.15.0
     dev: true
 
-  /@react-three/fiber/8.11.5_xor7byvqlg4baqj6ymfbcmaax4:
-    resolution: {integrity: sha512-Z+/hNPDy71q7xiGQQwngpLhoyjqPsuObs/Wbk2nYDZ0SC6rg3nCQBcIR6cf1+ONx1EP53L5lbuxcr+chkdGGmQ==}
+  /@react-three/fiber/8.12.0_xor7byvqlg4baqj6ymfbcmaax4:
+    resolution: {integrity: sha512-o6DkNtNHqcOFRbxaiY5xayelE/9+Z0z9wWu5awqjVbc0c/1QM6AttJH6rKW0U/O6LWxSfxDTARXVzknZqpDJ7A==}
     peerDependencies:
       expo: '>=43.0'
       expo-asset: '>=8.4'
@@ -615,7 +615,7 @@ packages:
     dependencies:
       '@babel/runtime': 7.21.0
       '@types/react-reconciler': 0.26.7
-      its-fine: 1.0.9_react@18.2.0
+      its-fine: 1.1.0_react@18.2.0
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
       react-reconciler: 0.27.0_react@18.2.0
@@ -833,7 +833,7 @@ packages:
       - supports-color
     dev: true
 
-  /@xstate/react/3.2.1_5qd7b23w5dgywqr3h5a5vxtscq:
+  /@xstate/react/3.2.1_ksnyljlrkmwcc2x7ndl6cyswga:
     resolution: {integrity: sha512-L/mqYRxyBWVdIdSaXBHacfvS8NKn3sTKbPb31aRADbE9spsJ1p+tXil0GVQHPlzrmjGeozquLrxuYGiXsFNU7g==}
     peerDependencies:
       '@xstate/fsm': ^2.0.0
@@ -848,7 +848,7 @@ packages:
       react: 18.2.0
       use-isomorphic-layout-effect: 1.1.2_pmekkgnqduwlme35zpnqhenc34
       use-sync-external-store: 1.2.0_react@18.2.0
-      xstate: 4.36.0
+      xstate: 4.37.1
     transitivePeerDependencies:
       - '@types/react'
     dev: false
@@ -2048,8 +2048,8 @@ packages:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
     dev: true
 
-  /its-fine/1.0.9_react@18.2.0:
-    resolution: {integrity: sha512-Ph+vcp1R100JOM4raXmDx/wCTi4kMkMXiFE108qGzsLdghXFPqad82UJJtqT1jwdyWYkTU6eDpDnol/ZIzW+1g==}
+  /its-fine/1.1.0_react@18.2.0:
+    resolution: {integrity: sha512-nEoEt5EYSed1mmvwCRv3l1+6T7pyu4ltyBihzPjUtaSWhFhUPU/c7xkPDIutTh8FeIv0F1F5wOFYI8a2s5rlBA==}
     peerDependencies:
       react: '>=18.0'
     dependencies:
@@ -2853,8 +2853,8 @@ packages:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
     dev: true
 
-  /xstate/4.36.0:
-    resolution: {integrity: sha512-AUI+KPgyy3g4PDpZWzUy/5ubd8VymbqikNmrJx5AQfqh+AQnemkBiabGROno+am1wUl2yeuT3UDrzUTSidfa6g==}
+  /xstate/4.37.1:
+    resolution: {integrity: sha512-MuB7s01nV5vG2CzaBg2msXLGz7JuS+x/NBkQuZAwgEYCnWA8iQMiRz2VGxD3pcFjZAOih3fOgDD3kDaFInEx+g==}
     dev: false
 
   /yallist/3.1.1:

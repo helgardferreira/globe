@@ -1,6 +1,6 @@
 {
   "name": "@helgardf/globe",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "author": "Helgard Richard Ferreira <https://helgard.dev/>",
   "main": "src/index.ts",
   "repository": {
