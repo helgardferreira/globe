@@ -1,15 +1,15 @@
 import { useEffect } from 'react';
-import { useSelector } from '@xstate/react';
+import { useInterpret, useSelector } from '@xstate/react';
 import { DEG2RAD } from 'three/src/math/MathUtils';
 
-import { useServices } from '../GlobalStateProvider';
 import { useGlobeControls } from '../utils/hooks';
 import { Path } from './Path';
+import { globeMachine } from '../services';
 
 export const Globe = () => {
-  const { globeService, pathSpawnerService } = useServices();
-  const dotMesh = useSelector(globeService, (state) => state.context.dotMesh);
-  const paths = useSelector(pathSpawnerService, (state) => state.context.paths);
+  const globeService = useInterpret(globeMachine, { services: {} });
+  const dotMesh = useSelector(globeService, ({ context }) => context.dotMesh);
+  const paths = useSelector(globeService, ({ context }) => context.paths);
 
   const { dotDensity, rows, maxPaths } = useGlobeControls();
 
@@ -19,14 +19,14 @@ export const Globe = () => {
       dotDensity,
       rows,
     });
-  }, [dotDensity, rows, globeService]);
+  }, [dotDensity, globeService, rows]);
 
   useEffect(() => {
-    pathSpawnerService.send({
+    globeService.send({
       type: 'UPDATE_MAX_PATHS',
       value: maxPaths,
     });
-  }, [maxPaths, pathSpawnerService]);
+  }, [globeService, maxPaths]);
 
   return (
     <group rotation={[0, 290 * DEG2RAD, 0]}>

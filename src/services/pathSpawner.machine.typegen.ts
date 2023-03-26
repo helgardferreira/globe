@@ -20,6 +20,7 @@
           "disposePath": "DISPOSE_PATH";
 "setData": "SET_DATA";
 "spawnPath": "SPAWN_PATH";
+"updateGlobe": "DISPOSE_PATH" | "SPAWN_PATH";
 "updateMaxPaths": "UPDATE_MAX_PATHS";
         };
         eventsCausingDelays: {
