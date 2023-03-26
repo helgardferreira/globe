@@ -1,8 +1,10 @@
 {
   "name": "@helgardf/globe",
-  "version": "1.0.5",
+  "version": "1.0.11",
   "author": "Helgard Richard Ferreira <https://helgard.dev/>",
-  "main": "src/index.ts",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/helgardferreira/globe.git"
@@ -14,13 +16,13 @@
   "type": "module",
   "files": [
     "dist",
-    "src",
     "README.md"
   ],
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build": "tsc && vite build && npm run build:types",
+    "preview": "vite preview",
+    "build:types": "tsc dist/index.cjs.js dist/index.js --declaration --allowJs --emitDeclarationOnly --outDir dist"
   },
   "dependencies": {
     "@react-three/fiber": "^8.11.5",

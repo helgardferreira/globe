@@ -10,7 +10,10 @@ export default defineConfig({
       entry: path.resolve(__dirname, 'src/index.ts'),
       name: 'Globe',
       formats: ['es', 'cjs'],
-      fileName: (format) => `globe.${format}.js`,
+      fileName: (format) => {
+        if (format === 'es') return 'index.js';
+        return `index.${format}.js`;
+      },
     },
     rollupOptions: {
       external: [
