@@ -5,7 +5,15 @@ import { DEG2RAD } from 'three/src/math/MathUtils';
 import { Path } from './Path';
 import { globeMachine } from '../services';
 
-export const Globe = () => {
+export type GlobeProps = {
+  dotDensity?: number;
+  rows?: number;
+  maxPaths?: number;
+};
+
+export const Globe: React.FC<GlobeProps> = (props) => {
+  const { dotDensity = 40, rows = 180, maxPaths = 10 } = props;
+
   const globeService = useInterpret(globeMachine, { services: {} });
   const dotMesh = useSelector(globeService, ({ context }) => context.dotMesh);
   const paths = useSelector(globeService, ({ context }) => context.paths);
@@ -13,17 +21,17 @@ export const Globe = () => {
   useEffect(() => {
     globeService.send({
       type: 'UPDATE_GLOBE_DOTS',
-      dotDensity: 40,
-      rows: 180,
+      dotDensity,
+      rows,
     });
-  }, [globeService]);
+  }, [dotDensity, globeService, rows]);
 
   useEffect(() => {
     globeService.send({
       type: 'UPDATE_MAX_PATHS',
-      maxPaths: 10,
+      maxPaths,
     });
-  }, [globeService]);
+  }, [globeService, maxPaths]);
 
   return (
     <group rotation={[0, 290 * DEG2RAD, 0]}>
