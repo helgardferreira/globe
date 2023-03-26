@@ -1,9 +1,16 @@
 {
-  "name": "globe",
+  "name": "@helgardf/globe",
   "version": "1.0.0",
-  "authors": [
-    "Helgard Richard Ferreira <https://helgard.dev/>"
-  ],
+  "author": "Helgard Richard Ferreira <https://helgard.dev/>",
+  "main": "src/index.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/helgardferreira/globe.git"
+  },
+  "bugs": {
+    "url": "https://github.com/helgardferreira/globe/issues"
+  },
+  "homepage": "https://github.com/helgardferreira/globe#readme",
   "private": true,
   "type": "module",
   "files": [
