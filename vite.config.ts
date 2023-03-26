@@ -16,7 +16,7 @@ export default defineConfig({
       external: [
         'react',
         'react-dom',
-        'react-three-fiber',
+        '@react-three-fiber',
         'three',
         'xstate',
         '@xstate/react',
