@@ -32,7 +32,7 @@
           
         };
         eventsCausingServices: {
-          "fetchMap$": "xstate.init";
+          "fetchMap$": "UPDATE_GLOBE_DOTS" | "xstate.init";
 "pathSpawner": "SET_MAP_DATA" | "UPDATE_GLOBE_DOTS" | "UPDATE_MAX_PATHS" | "UPDATE_PATHS";
         };
         matchesStates: "active" | "loading";

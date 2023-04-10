@@ -55,7 +55,7 @@ type GlobeMachineContext = {
   paths: PathWithId[];
 };
 
-/** @xstate-layout N4IgpgJg5mDOIC5RQDYHsBGYB06CGEAlgHZQDEAygKIAqA+gLICCACnQCJM1MDaADAF1EoAA5pYhAC6E0xYSAAeiAEwAWPtgDMARmUBWPgA4AnADYA7NsOq9mgDQgAnok3nV2ZedN9zhzZtVfPm0AXxCHVEwcPABjaQA3MDIAVRZOGio6AHEAGQB5ACFM9jyaCn4hJBAxCWlZeSUEVW1NbFNtc2U+VWM+HT5TQwdnBE93dVN9TT7jZQDDPTCI9CxsWISk1PTMli4ACXLBeRqpGTkqxtVNQw92zum9az0O4cQO82xjW20rH71lAF9JYgSKrdaERIpNJcTLMAAadF2NAOFWO4lO9QuiGaHwCXnMmmMXm0xmMrwQhm02B6pKJrjmmlMzzC4RAxDQEDg8lBYDRtTODUQAFpTOSRdg+JLJbNJqpTDptEzgTzcGgCCQoHyMedQJdlOTrh9OsYOsZDIZzLZrsqVtE4hDeVUTnUdYpsaplNgLQYWuoLTpRU5sXxPZT9MFdHw9LNNCyQkA */
+/** @xstate-layout N4IgpgJg5mDOIC5RQDYHsBGYB06CGEAlgHZQDEAygKIAqA+gLICCACnQCJM1MDaADAF1EoAA5pYhAC6E0xYSAAeiAEwA2ACzYArAHYAHAEY1fPgGYAnMp3KANCACeiU9ew6dqvlo3qtyg6vMAX0C7VEwcPABjaQA3MDIAVRZOGio6AHEAGQB5ACE09myaCn4hJBAxCWlZeSUEdT0tbHM+VWVTXy1TdVVTAztHBCtTbHVW5XUG81VVPQ1g0PQsbCjY+KSUtJYuAAkSwXlKqRk5crqtAz5tHr0ddWU+dXMDH1UBxAM3Ua6jCYbu0zKBYgMLLVaEOKJZJcNLMAAadG2ND2pUO4mONTOiCm2F6yj0nkafCsWnU7wQhm0wNBOHwRFIUM2GRy+Q4RX2ZVE6Oqp1AdXu2BMQuFwpe5PxmjcqkuVjGGjUwRCIGIaAgcHkNLRVROtUQAFomuYjcaTca5uS9apqUtaWgCCQoFqMbzFIhSdgjE9phNpT0dOZyaZGq5lM89HplH4hfMlTSVtEIWAnTzdfUBXoWm0HjoLFoI+SxldDMoLm51HdelbFUA */
 export const globeMachine = createMachine(
   {
     id: 'globe',
@@ -84,6 +84,12 @@ export const globeMachine = createMachine(
           SET_MAP_DATA: {
             target: 'active',
             actions: ['setMapData', 'plotGlobeDots'],
+          },
+
+          UPDATE_GLOBE_DOTS: {
+            target: 'loading',
+            actions: 'updateGlobeDots',
+            internal: true,
           },
         },
       },
