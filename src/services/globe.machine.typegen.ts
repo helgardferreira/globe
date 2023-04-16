@@ -4,13 +4,11 @@
   export interface Typegen0 {
         '@@xstate/typegen': true;
         internalEvents: {
-          "done.invoke.pathSpawner": { type: "done.invoke.pathSpawner"; data: unknown; __tip: "See the XState TS docs to learn how to strongly type this." };
-"error.platform.pathSpawner": { type: "error.platform.pathSpawner"; data: unknown };
-"xstate.init": { type: "xstate.init" };
+          "xstate.init": { type: "xstate.init" };
+"xstate.stop": { type: "xstate.stop" };
         };
         invokeSrcNameMap: {
           "fetchMap$": "done.invoke.globe.loading:invocation[0]";
-"pathSpawner": "done.invoke.pathSpawner";
         };
         missingImplementations: {
           actions: never;
@@ -19,8 +17,12 @@
           services: never;
         };
         eventsCausingActions: {
-          "plotGlobeDots": "SET_MAP_DATA" | "UPDATE_GLOBE_DOTS";
+          "disposePathSpawner": "UPDATE_GLOBE_DOTS" | "UPDATE_MAX_PATHS" | "UPDATE_PATHS" | "xstate.stop";
+"forwardToPathSpawner": "UPDATE_MAX_PATHS";
+"init": "INIT";
+"plotGlobeDots": "SET_MAP_DATA" | "UPDATE_GLOBE_DOTS";
 "setMapData": "SET_MAP_DATA";
+"spawnPathSpawner": "SET_MAP_DATA" | "UPDATE_GLOBE_DOTS" | "UPDATE_MAX_PATHS" | "UPDATE_PATHS";
 "updateGlobeDots": "UPDATE_GLOBE_DOTS";
 "updateMaxPaths": "UPDATE_MAX_PATHS";
 "updatePaths": "UPDATE_PATHS";
@@ -32,10 +34,9 @@
           
         };
         eventsCausingServices: {
-          "fetchMap$": "UPDATE_GLOBE_DOTS" | "xstate.init";
-"pathSpawner": "SET_MAP_DATA" | "UPDATE_GLOBE_DOTS" | "UPDATE_MAX_PATHS" | "UPDATE_PATHS";
+          "fetchMap$": "INIT";
         };
-        matchesStates: "active" | "loading";
+        matchesStates: "active" | "idle" | "loading";
         tags: never;
       }
   
