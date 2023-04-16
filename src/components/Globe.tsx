@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
+import { type Group } from 'three';
 import { GroupProps } from '@react-three/fiber';
 import { useInterpret, useSelector } from '@xstate/react';
-import { DEG2RAD } from 'three/src/math/MathUtils';
 
 import { Path } from './Path';
 import { globeMachine } from '../services';
@@ -12,12 +12,10 @@ export type GlobeProps = {
   maxPaths?: number;
 } & GroupProps;
 
-export const Globe: React.FC<GlobeProps> = ({
-  dotDensity = 40,
-  rows = 180,
-  maxPaths = 10,
-  ...props
-}) => {
+export const Globe = React.forwardRef<Group, GlobeProps>(function Globe(
+  { dotDensity = 40, rows = 180, maxPaths = 10, ...props },
+  ref
+) {
   const globeService = useInterpret(globeMachine);
   const dotMesh = useSelector(globeService, ({ context }) => context.dotMesh);
   const paths = useSelector(globeService, ({ context }) => context.paths);
@@ -47,7 +45,7 @@ export const Globe: React.FC<GlobeProps> = ({
   }, [globeService, maxPaths]);
 
   return (
-    <group rotation={[0, 290 * DEG2RAD, 0]} {...props}>
+    <group ref={ref} {...props}>
       <mesh>
         <sphereGeometry args={[1, 64, 64]} />
         <meshBasicMaterial transparent opacity={0.7} color={0x000000} />
@@ -58,4 +56,4 @@ export const Globe: React.FC<GlobeProps> = ({
       {dotMesh && <primitive object={dotMesh} />}
     </group>
   );
-};
+});
