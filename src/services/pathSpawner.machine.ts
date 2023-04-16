@@ -54,10 +54,8 @@ type PathSpawnerContext = {
 };
 
 /** @xstate-layout N4IgpgJg5mDOIC5QAcCGAXAFgZTQdwDswAnAOgBsB7VCASwKgGJsBRAFQH0ARAQTZ4DaABgC6iFJVi10tSgXEgAHogBMAZgBspAJwBGACxCA7LqH7tG7UbMAaEAE9E+g6WsBWI241qhmoSoAOAF8guzQsXFRCElJUAGMZADcwZgAFHgB1ADkOdLYACWExJBBkSWlZeRLlBEMVUhV9FWamgKMVbQC1O0cEH11SNTdtZwDjdrUDNxCwjBx8IjJ4pJSuAElsVIB5Vly+QtEFMqkZOQUatStSXS6NZoD1FS9dHsRdIyMdN0n9DSEzb7qGalOaRaJLBK0ZKMACqqV4bBYHAAsjwABp7ArYIpHcqnKqgC5GfSkIQBYaWIwPDT6NRPV4IAIDNz-f5-TSNNy6EKhEAESgQOBHUELEi4k6Vc6IAC0GgZsuB4XmUUWFGodAY4oqZ2qThUDOcJI0Dx8ahMGg0ujuipFKpiyyhYC1+KlfWJpO0Zva+jqgQNHVcGi832NAT0amCPKAA */
-export const createPathSpawnerMachine = () => {
+export const createPathSpawnerMachine = (maxPaths: number) => {
   const paths$ = new BehaviorSubject<PathSpawnerContext['paths']>([]);
-
-  let maxPaths = 10;
 
   return createMachine(
     {

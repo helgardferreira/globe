@@ -18,9 +18,18 @@ export const Globe: React.FC<GlobeProps> = ({
   maxPaths = 10,
   ...props
 }) => {
-  const globeService = useInterpret(globeMachine, { services: {} });
+  const globeService = useInterpret(globeMachine);
   const dotMesh = useSelector(globeService, ({ context }) => context.dotMesh);
   const paths = useSelector(globeService, ({ context }) => context.paths);
+
+  useEffect(() => {
+    globeService.send({
+      type: 'INIT',
+      dotDensity,
+      rows,
+      maxPaths,
+    });
+  }, [dotDensity, globeService, maxPaths, rows]);
 
   useEffect(() => {
     globeService.send({

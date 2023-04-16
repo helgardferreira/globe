@@ -18,6 +18,8 @@
         };
         eventsCausingActions: {
           "disposePathSpawner": "UPDATE_GLOBE_DOTS" | "UPDATE_MAX_PATHS" | "UPDATE_PATHS" | "xstate.stop";
+"forwardToPathSpawner": "UPDATE_MAX_PATHS";
+"init": "INIT";
 "plotGlobeDots": "SET_MAP_DATA" | "UPDATE_GLOBE_DOTS";
 "setMapData": "SET_MAP_DATA";
 "spawnPathSpawner": "SET_MAP_DATA" | "UPDATE_GLOBE_DOTS" | "UPDATE_MAX_PATHS" | "UPDATE_PATHS";
@@ -32,9 +34,9 @@
           
         };
         eventsCausingServices: {
-          "fetchMap$": "UPDATE_GLOBE_DOTS" | "xstate.init";
+          "fetchMap$": "INIT";
         };
-        matchesStates: "active" | "loading";
+        matchesStates: "active" | "idle" | "loading";
         tags: never;
       }
   
