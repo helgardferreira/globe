@@ -3,6 +3,7 @@ import {
   createMachine,
   forwardTo,
   SendAction,
+  spawn,
   StateValueFrom,
 } from 'xstate';
 import { type Observable, map } from 'rxjs';
@@ -20,7 +21,8 @@ import mapUrl from '../assets/photos/map.png';
 import { fromImageLoad } from '../utils/rxjs';
 import { type MapSize, isDotVisible, latLongToCoords } from '../utils/lib';
 import {
-  pathSpawnerMachine,
+  createPathSpawnerMachine,
+  PathSpawnerActor,
   PathWithId,
   UpdateMaxPathsEvent,
   UpdatePathsEvent,
@@ -49,13 +51,14 @@ type GlobeMachineContext = {
   dotDensity: number;
   rows: number;
   dotSize: number;
+  paths: PathWithId[];
   mapSize?: MapSize;
   imageData?: ImageData;
   dotMesh?: InstancedMesh<CircleGeometry, MeshBasicMaterial>;
-  paths: PathWithId[];
+  pathSpawnerRef?: PathSpawnerActor;
 };
 
-/** @xstate-layout N4IgpgJg5mDOIC5RQDYHsBGYB06CGEAlgHZQDEAygKIAqA+gLICCACnQCJM1MDaADAF1EoAA5pYhAC6E0xYSAAeiAEwA2ACzYArAHYAHAEY1fPgGYAnMp3KANCACeiU9ew6dqvlo3qtyg6vMAX0C7VEwcPABjaQA3MDIAVRZOGio6AHEAGQB5ACE09myaCn4hJBAxCWlZeSUEdT0tbHM+VWVTXy1TdVVTAztHBCtTbHVW5XUG81VVPQ1g0PQsbCjY+KSUtJYuAAkSwXlKqRk5crqtAz5tHr0ddWU+dXMDH1UBxAM3Ua6jCYbu0zKBYgMLLVaEOKJZJcNLMAAadG2ND2pUO4mONTOiCm2F6yj0nkafCsWnU7wQhm0wNBOHwRFIUM2GRy+Q4RX2ZVE6Oqp1AdXu2BMQuFwpe5PxmjcqkuVjGGjUwRCIGIaAgcHkNLRVROtUQAFomuYjcaTca5uS9apqUtaWgCCQoFqMbzFIhSdgjE9phNpT0dOZyaZGq5lM89HplH4hfMlTSVtEIWAnTzdfUBXoWm0HjoLFoI+SxldDMoLm51HdelbFUA */
+/** @xstate-layout N4IgpgJg5mDOIC5RQDYHsBGYB06CGEAlgHZQDEAygKIAqA+gLICCACnQCJM1MDaADAF1EoAA5pYhAC6E0xYSAAeiAEwA2ACzYArAHYAHAEYAzPq1a9GveoA0IAJ6Ije5dgCc65Tt1HXrowdc9AF8g21RMHHwiUjIAVRZOGio6AHEAGQB5ACFk9gyaCn4hJBAxCWlZeSUEdQM3XwbGhotbBwRldzcPfT51QNU+Vy0QsPQsbDwAY2kANzA4hK5k9Ozc-MLBeTKpGTkS6vUtVWwDPi0fdSNanR1XVSNWlR1NdT5VZWU3o9PVEZBw8ZTWbzeKJZIsLgACQ2xVE4h2lX2iHUej42GevgG6lUBn0qi0jwQuJ0bnOBlORmUqPOfAMfwBOCBhDmCzBjCYAA06BCaNCilt4RU9qADlpXNg9EZzO51DpVDpjNjCYZtCFQiBiGgIHB5AyBeVdlVEABaY58c0Wy0Wgw2ewm37qhm4NAEEhQfUI4WKRBaTTGKlGKWeG0GPRmQk+Y4+aV8ZyqePKX30saM6bMsAeoVGmoeCXOG6uG3xrySwmvFyGROBgz3W5aRNqoJAA */
 export const globeMachine = createMachine(
   {
     id: 'globe',
@@ -115,10 +118,8 @@ export const globeMachine = createMachine(
           },
         },
 
-        invoke: {
-          id: 'pathSpawner',
-          src: 'pathSpawner',
-        },
+        entry: 'spawnPathSpawner',
+        exit: 'disposePathSpawner',
       },
     },
   },
@@ -201,6 +202,21 @@ export const globeMachine = createMachine(
           };
         }
       ),
+      spawnPathSpawner: assign(() => {
+        const pathSpawnerRef = spawn(createPathSpawnerMachine());
+
+        return {
+          pathSpawnerRef,
+        };
+      }),
+      disposePathSpawner: assign(({ pathSpawnerRef }) => {
+        if (!pathSpawnerRef) throw new Error('Missing path spawner actor');
+        pathSpawnerRef.stop?.();
+
+        return {
+          pathSpawnerRef: undefined,
+        };
+      }),
       updatePaths: assign((_, { paths }) => ({ paths })),
       updateMaxPaths: forwardTo('pathSpawner') as SendAction<any, any, any>,
     },
@@ -239,7 +255,6 @@ export const globeMachine = createMachine(
           })
         );
       },
-      pathSpawner: pathSpawnerMachine,
     },
   }
 );
