@@ -40,7 +40,7 @@ type RotateControlsMachineEvent =
 const pointerMove$ = fromEvent<PointerEvent>(window, 'pointermove');
 const pointerUp$ = fromEvent<PointerEvent>(window, 'pointerup');
 
-/** @xstate-layout N4IgpgJg5mDOIC5QCcD2AXAhusBhVAdumgDawB0AlhCWAMQCSAcgwCoDaADALqKgAOqWJXSVCfEAA9EARgBMANgA0IAJ6IArDIXk5ADgCcnAMwyDeuQBY5ZgL62VaLDnxFSFTAGNRAN3oAFAEEmAH0AUSYAES5eJBBBYVFxOOkES04AdnJOPQ0DYwyNFXUEYwMNcj15DXtHDGw8QmJUMnIvXwDgkIBZAHkANTCYiQSRMQIJVPTOcmN9auLEOQzjcnSFORqHECcG12bW9so-OgBVf0jA1iGeEaEx5NApmRlKvIKitVkMrMsNU02tR29RcTXcbW8x06oQAyqxAgAlDi3OKjJITFKIMp6XQyPSFRYIKrkLbbAioCBwCS7UFuFrwVH3dGTRAAWmUXwQ7KBNMadNa1Fod0S4xZaTkhP+BhJMg0eUslgs1js215+3BRz8woeGKeSys5AUnHyBM5lgMOgyCjlBgVSpsBns9iAA */
+/** @xstate-layout N4IgpgJg5mDOIC5QCcD2AXAhusBhVAdumgDawB0AlhCWAMQCSAcgwCoDaADALqKgAOqWJXSVCfEAA9EARgBMANgA0IAJ6IArHLnkA7AA4AnJ10BmQwBYLnQzP0BfeyrRYc+IqQqYAxqIBu9AAKAIJMAPoAokwAIly8SCCCwqLiCdII1rrknPoahqa6GirqCOYa5PryGjIyVta2Dk4gLth4hMSoZOQ+-kGhYQCyAPIAahFxEkkiYgQS6dac5KZylXJFaohyZuTWCoq1VjZ2js4Yre4dXT2UAXQAqoHRwazjPJNC06mg8zUVeQXrEoyXRZCwaUzyGq5UycLamE7NM5udqebq+G59cIAZVYwQAShw3gkpilZmlEOZ9OQ5HZCsVEJUdoZmYYFHZwbCzI4mgRUBA4BIWsiPJ14MSPqS5ogALTKDYIWUIoVtEVdai0d7JGZSjJyekIDQWBTZGQaBSmBR1I6NU6uFWXLzogKaz5k76bOQWcgKGwA-UWVl6BRmi1Whrc+xAA */
 export const rotateControlsMachine = createMachine(
   {
     id: 'rotateControls',
@@ -75,8 +75,10 @@ export const rotateControlsMachine = createMachine(
       },
 
       active: {
-        description:
-          'The panning.active state represents the user actively interacting with the panning controls',
+        description: `The panning.active state represents the rotate controls
+          is ready to receive user input.
+          Instead of having multiple states for each interaction we have one
+          state for animations later on.`,
 
         on: {
           PAN_END: {
