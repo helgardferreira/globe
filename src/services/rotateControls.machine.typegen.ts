@@ -5,10 +5,11 @@
         '@@xstate/typegen': true;
         internalEvents: {
           "xstate.init": { type: "xstate.init" };
-"xstate.stop": { type: "xstate.stop" };
         };
         invokeSrcNameMap: {
-          
+          "panEnd$": "done.invoke.rotateControls.active:invocation[2]";
+"panMove$": "done.invoke.rotateControls.active:invocation[0]";
+"panStart$": "done.invoke.rotateControls.active:invocation[1]";
         };
         missingImplementations: {
           actions: never;
@@ -19,8 +20,8 @@
         eventsCausingActions: {
           "init": "INIT";
 "pan": "PAN_MOVE";
-"panEnd": "INIT" | "PAN_END" | "xstate.stop";
-"panStart": "PAN_MOVE";
+"panEnd": "PAN_END";
+"panStart": "PAN_START";
 "update": "PAN_MOVE" | "UPDATE";
         };
         eventsCausingDelays: {
@@ -30,9 +31,11 @@
           
         };
         eventsCausingServices: {
-          
+          "panEnd$": "INIT" | "PAN_END" | "PAN_START";
+"panMove$": "INIT" | "PAN_END" | "PAN_START";
+"panStart$": "INIT" | "PAN_END" | "PAN_START";
         };
-        matchesStates: "panning" | "panning.active" | "panning.idle" | { "panning"?: "active" | "idle"; };
+        matchesStates: "active" | "idle";
         tags: never;
       }
   
