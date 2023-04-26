@@ -21,11 +21,11 @@ import mapUrl from '../assets/photos/map.png';
 import { fromImageLoad } from '../utils/rxjs';
 import { type MapSize, isDotVisible, latLongToCoords } from '../utils/lib';
 import {
+  type PathSpawnerActor,
+  type PathWithId,
+  type UpdateMaxPathsEvent,
+  type UpdatePathsEvent,
   createPathSpawnerMachine,
-  PathSpawnerActor,
-  PathWithId,
-  UpdateMaxPathsEvent,
-  UpdatePathsEvent,
 } from './pathSpawner.machine';
 
 type InitEvent = {
@@ -52,13 +52,18 @@ type UpdateGlobeDotsEvent = {
   rows: number;
 };
 
+type PlayEvent = { type: 'PLAY' };
+type PauseEvent = { type: 'PAUSE' };
+
 type GlobeMachineEvent =
   | InitEvent
   | LoadEvent
   | SetMapDataEvent
   | UpdateGlobeDotsEvent
   | UpdatePathsEvent
-  | UpdateMaxPathsEvent;
+  | UpdateMaxPathsEvent
+  | PlayEvent
+  | PauseEvent;
 
 type GlobeMachineContext = {
   dotDensity: number;
@@ -72,17 +77,18 @@ type GlobeMachineContext = {
   pathSpawnerRef?: PathSpawnerActor;
 };
 
-/** @xstate-layout N4IgpgJg5mDOIC5RQDYHsBGYB06CGEAlgHZQDEAygKIAqA+gLICCACnQCJM1MDaADAF1EoAA5pYhAC6E0xYSAAeiACzKAjNgBsADgDsAVj6ajyw2uWaANCACeKvgE5s2h-u0Ambcr573m3coAvoHWqJg4eADG0gBuYGQAqiycNFR0AOIAMgDyAEJp7Nk0FPxCSCBiEtKy8koImgDMDdju5tr63u4NytqN1nYIDXwaDfoODQatyq3+waHoWNhRsfFJKWksXAASJYLylVIycuV1mvq6zmMNDny6uny37sr9iO58ytg3mk+6nvoNrQcQRCIDCi2WhDiiWSXDSzAAGnRNjQdqV9uJDjUTohGppPqYGmpjA41B1NFZbIhtBplA46Q4zu5froAQ05qCFjhCBAUPEAJIAOT5NDR5QO1WOoDqanc+mwtPp9NuDm01xeCG82haLj4+ieuvOv2CIOIaAgcHkYLA6KqR1qiAAtBSBk7sA93R7Pbp2VbcGgCCQoDbMZLFK9CS1pmpxo13Q5dNp1dNmt0XIa9fcuj7OUtopDrWKMRL7fVo58HID9FXXLpvkn3E5a-piQZ1N02SDfdzecHi9iNe4kxGm8Yhkz4w0vMbAkA */
+/** @xstate-layout N4IgpgJg5mDOIC5RQDYHsBGYB06CGEAlgHZQDEAygKIAqA+gLICCACnQCJM1MDaADAF1EoAA5pYhAC6E0xYSAAeiACwAmVdjUBGABwB2AMwA2HQZ1G1AGhABPRDq3YArH1d8tRp3r7KjerQC+AdaomDiEEChgZACSAHIxNPxCSCBiEtKy8koIWqpOmgCcxYV6Fk6qfAZ8TtZ2CIXK2KWenuZaaoXuQSHoWNh4AMbSAG44KIRjZACqLJw0VHQA4gAyAPIAQovsazQUyfLpUjJyqTlaWgXqqp6FRsYGBloGdYhdOs2Fqlp66j-eBh6IFC-SGo3Gk2is3mixYXAAEvtBIdxMcsmdEM9CthzP5GspCgZSqplK8EA4NE4iT53JUdBVVECQTgwZDcJCZnMuItmAANOhwmiIg6pI6ZU6gc66ZpUi5GPg6GoOHSqMkmbHPVSmR56ZTKBXKJl9FnDNkTKZw6bUEWiVHi7KIMxGbB8VQGZQVJy6InmMlaGp8TTfL7mHS+S5OI1hbAiPAAV1gkDILBWTAAmja0naTg6EEZVbYVJdmnx8-mPDd84ygcQ0BA4PJmSiMjmMQgALRGMmdl1uPv9vh6KP9fBEUjNtESxSIdRNf2EvzfYx+HRkxoyp43ElGDra4fhSJgCf2ttWQu5aUep4GFxeExhofBYHGgamsbH1uSxBOUnnn+B+4tSAi4FTKfdX3Bdl31FbN0S-XJXT9Ko9GwH1lHMdCSS6atemjVkxmwAALQhYEkNAACd6ltFs4OnBCC3qfMPk1cx3T8HcjCMcDYwTSAP1onJ5Q0PQdHeZQtEaf0nFXc89RQ3wdycQoPGqXwqiCIIgA */
 export const globeMachine = createMachine(
   {
     id: 'globe',
     tsTypes: {} as import('./globe.machine.typegen').Typegen0,
+
     schema: {
       events: {} as GlobeMachineEvent,
       context: {} as GlobeMachineContext,
     },
-    predictableActionArguments: true,
 
+    predictableActionArguments: true,
     initial: 'idle',
 
     context: {
@@ -100,35 +106,10 @@ export const globeMachine = createMachine(
         },
         on: {
           SET_MAP_DATA: {
-            target: 'active',
+            target: 'active.live',
             actions: ['setMapData', 'plotGlobeDots'],
           },
         },
-      },
-
-      active: {
-        on: {
-          UPDATE_GLOBE_DOTS: {
-            actions: ['updateGlobeDots', 'plotGlobeDots'],
-            target: 'active',
-            internal: true,
-          },
-
-          UPDATE_PATHS: {
-            target: 'active',
-            internal: true,
-            actions: 'updatePaths',
-          },
-
-          UPDATE_MAX_PATHS: {
-            target: 'active',
-            internal: true,
-            actions: ['updateMaxPaths', 'forwardToPathSpawner'],
-          },
-        },
-
-        entry: 'spawnPathSpawner',
-        exit: 'disposePathSpawner',
       },
 
       idle: {
@@ -136,6 +117,56 @@ export const globeMachine = createMachine(
           INIT: {
             target: 'loading',
             actions: 'init',
+          },
+        },
+      },
+
+      active: {
+        initial: 'live',
+
+        states: {
+          live: {
+            on: {
+              UPDATE_GLOBE_DOTS: {
+                actions: ['updateGlobeDots', 'plotGlobeDots'],
+                target: 'live',
+                internal: true,
+              },
+
+              UPDATE_PATHS: {
+                target: 'live',
+                internal: true,
+                actions: 'updatePaths',
+              },
+
+              UPDATE_MAX_PATHS: {
+                target: 'live',
+                internal: true,
+                actions: ['updateMaxPaths', 'forwardToPathSpawner'],
+              },
+
+              PAUSE: {
+                target: '#globe.paused',
+                actions: 'forwardToPathSpawner',
+              },
+            },
+
+            entry: 'spawnPathSpawner',
+            exit: 'disposePathSpawner',
+          },
+
+          history: {
+            type: 'history',
+            history: 'shallow',
+          },
+        },
+      },
+
+      paused: {
+        on: {
+          PLAY: {
+            target: 'active.history',
+            actions: 'forwardToPathSpawner',
           },
         },
       },
@@ -225,15 +256,23 @@ export const globeMachine = createMachine(
           };
         }
       ),
-      spawnPathSpawner: assign(({ maxPaths }) => {
-        const pathSpawnerRef = spawn(createPathSpawnerMachine(maxPaths));
+      spawnPathSpawner: assign(({ pathSpawnerRef, maxPaths }) => {
+        // if (pathSpawnerRef) pathSpawnerRef.stop?.();
+        if (!pathSpawnerRef) {
+          const pathSpawner = spawn(
+            createPathSpawnerMachine(maxPaths),
+            'pathSpawner'
+          );
+          return {
+            pathSpawnerRef: pathSpawner,
+          };
+        }
 
-        return {
-          pathSpawnerRef,
-        };
+        return {};
       }),
-      disposePathSpawner: assign(({ pathSpawnerRef }) => {
+      disposePathSpawner: assign(({ pathSpawnerRef }, { type }) => {
         if (!pathSpawnerRef) throw new Error('Missing path spawner actor');
+        if (type === 'PAUSE') return {};
         pathSpawnerRef.stop?.();
 
         return {
@@ -251,8 +290,8 @@ export const globeMachine = createMachine(
       >,
     },
     services: {
-      fetchMap$: (): Observable<SetMapDataEvent> => {
-        return fromImageLoad(mapUrl).pipe(
+      fetchMap$: (): Observable<SetMapDataEvent> =>
+        fromImageLoad(mapUrl).pipe(
           map<HTMLImageElement, SetMapDataEvent>((image) => {
             const mapSize = {
               width: image.width,
@@ -283,10 +322,12 @@ export const globeMachine = createMachine(
               imageData,
             };
           })
-        );
-      },
+        ),
     },
   }
 );
 
-export type GlobeMachineStateValue = StateValueFrom<typeof globeMachine>;
+export type GlobeMachineStateValue = Exclude<
+  StateValueFrom<typeof globeMachine>,
+  object
+>;

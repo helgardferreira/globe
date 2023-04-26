@@ -31,17 +31,24 @@ export type UpdatePathsEvent = {
   type: 'UPDATE_PATHS';
   paths: PathWithId[];
 };
-
 export type UpdateMaxPathsEvent = {
   type: 'UPDATE_MAX_PATHS';
   maxPaths: number;
 };
+type DisposePathEvent = {
+  type: 'DISPOSE_PATH';
+  pathId: string;
+};
+type PlayEvent = { type: 'PLAY' };
+type PauseEvent = { type: 'PAUSE' };
 
 export type PathSpawnerEvent =
   | SetDataEvent
   | SpawnPathEvent
-  | { type: 'DISPOSE_PATH'; pathId: string }
-  | UpdateMaxPathsEvent;
+  | DisposePathEvent
+  | UpdateMaxPathsEvent
+  | PlayEvent
+  | PauseEvent;
 
 type PathSpawnerContext = {
   locations?: PathLocation[];
@@ -59,6 +66,7 @@ export const createPathSpawnerMachine = (maxPaths: number) => {
 
   return createMachine(
     {
+      /** @xstate-layout N4IgpgJg5mDOIC5QAcCGAXAFgZTQdwDswAnAOgBsB7VCASwKgGJsBRAFQH0ARAQTZ4DaABgC6iFJVi10tSgXEgAHogBMAZgBspAJwqAjAA4NAdg2GVK7QBYrAGhABPRBoMBWUlbXqXag1Y3axmoAvsH2aFi4qIQkpKgAxjIAbmAUtCnMAAo8AOoAchzZbAASwmJIIMiS0rLyFcoInsakKq7GBkKuHZZq7fZOCG0qpAZqrtqdxhPWLqHhGDj4RGQJyank6WCMXACS2JkA8qyFfKWiClVSMnIKDZ7DKkJqQoEupmYa-YhWrkIelhorO8NK49NprHNKgsojEVolNmkMgBVTK8NgsDgAWR4AA0TiVsGULtVrnVQHcXqQ9EI9K5XCCwYFjMZXF8EGMrB5TK5ehYbKNtJCIotoss4vCUoitpkADI8ACaJyRrCJFUuNRu9Wc4xaKhBKis1IM4L0dkciGMQj+oLaej0GitQgMbiF0KWsTQAFdYJBGLKFUqVec1STardEK4VGyDHpSL8rbSDK0hMYDXpQmEQARKBA4Bc3aKSMSrmGtQgALSfc0VjSuyLushUGj0KDFjVkpTfKPVlzuRPaPQWYw2NR2usi2HitZt0nh9lmKk0ukM8HMllsx7uV5dbSaF7dWuZ4UwsWrBEbFIz0vk76U6m7roaDTPbzGNmWv4Giy9PTD3d68cT1iM9JUwWhYHQShiAGCQS01G9GjvF4xiMZ8hFfDddy5EFR10QEH0AhtSC9H0ICveDOwQPxmntNRtGdEE6X0NQ2TtYYOnBOirFXCYjAzYIgA */
       id: 'pathSpawner',
       initial: 'loading',
       schema: {
@@ -80,34 +88,59 @@ export const createPathSpawnerMachine = (maxPaths: number) => {
 
           on: {
             SET_DATA: {
-              target: 'active',
+              target: 'active.live',
               actions: 'setData',
             },
           },
         },
 
         active: {
-          invoke: {
-            src: 'spawnPaths$',
+          initial: 'live',
+
+          states: {
+            live: {
+              invoke: {
+                src: 'spawnPaths$',
+              },
+
+              on: {
+                SPAWN_PATH: {
+                  target: 'live',
+                  internal: true,
+                  actions: ['spawnPath', 'updateGlobe'],
+                },
+
+                DISPOSE_PATH: {
+                  target: 'live',
+                  internal: true,
+                  actions: ['disposePath', 'updateGlobe'],
+                },
+
+                UPDATE_MAX_PATHS: {
+                  target: 'live',
+                  internal: true,
+                  actions: 'updateMaxPaths',
+                },
+
+                PAUSE: {
+                  target: '#pathSpawner.paused',
+                  actions: 'forwardToChildren',
+                },
+              },
+            },
+
+            history: {
+              type: 'history',
+              history: 'shallow',
+            },
           },
+        },
 
+        paused: {
           on: {
-            SPAWN_PATH: {
-              target: 'active',
-              internal: true,
-              actions: ['spawnPath', 'updateGlobe'],
-            },
-
-            DISPOSE_PATH: {
-              target: 'active',
-              internal: true,
-              actions: ['disposePath', 'updateGlobe'],
-            },
-
-            UPDATE_MAX_PATHS: {
-              target: 'active',
-              internal: true,
-              actions: 'updateMaxPaths',
+            PLAY: {
+              target: 'active.history',
+              actions: 'forwardToChildren',
             },
           },
         },
@@ -115,6 +148,11 @@ export const createPathSpawnerMachine = (maxPaths: number) => {
     },
     {
       actions: {
+        forwardToChildren: ({ paths }, { type }) => {
+          paths.forEach(({ pathActorRef }) => {
+            pathActorRef.send(type);
+          });
+        },
         setData: assign((_, { locations }) => {
           const pathData = [...new Array(200).keys()].map(() => {
             const startIndex = Math.floor(Math.random() * locations.length);
@@ -173,12 +211,10 @@ export const createPathSpawnerMachine = (maxPaths: number) => {
         updateMaxPaths: (_, { maxPaths: value }) => {
           maxPaths = value;
         },
-        updateGlobe: sendParent(({ paths }) => {
-          return {
-            type: 'UPDATE_PATHS',
-            paths,
-          };
-        }),
+        updateGlobe: sendParent(({ paths }) => ({
+          type: 'UPDATE_PATHS',
+          paths,
+        })),
       },
       services: {
         loadData$: (): Observable<SetDataEvent> =>

@@ -21,15 +21,18 @@ export type PathLocation = {
   population: number;
 };
 
+type InitEvent = { type: 'INIT' };
 type UpdateBuildEvent = { type: 'UPDATE_BUILD'; renderCount: number };
 type UpdateDestroyEvent = { type: 'UPDATE_DESTROY'; deRenderCount: number };
+type PlayEvent = { type: 'PLAY' };
+type PauseEvent = { type: 'PAUSE' };
 
 type PathMachineEvent =
-  | {
-      type: 'INIT';
-    }
+  | InitEvent
   | UpdateBuildEvent
-  | UpdateDestroyEvent;
+  | UpdateDestroyEvent
+  | PlayEvent
+  | PauseEvent;
 
 type ArcHeightConfig = {
   thresholds: {
@@ -64,12 +67,12 @@ export const createPathMachine = ({
   startLocation: PathLocation;
   endLocation: PathLocation;
 }) =>
-  /** @xstate-layout N4IgpgJg5mDOIC5QAcCGAXAFgOgEYFcBLAGwkIDsoBiCAe3LGwoDdaBrRtLPI0iqBC1oBjDIXoBtAAwBdaTMQpasQunHlFIAB6IATADZ92KQHYpAZnMAOAJwBWG-qm67AGhABPPbqnYALHbmAIwBfrrmUnYm1gC+Me5cOAQkZJRUAKoACgAiAIIAKgCiAPoAQukAkgAy2fKayMqq6po6CCa62EGRAZYBZs5unohWQf424+NB7SY2Ula6cQkYOBBw6ABOtB78NPSMQhzYidirsBtb-ILkrKJqkrJ1SCANKncaT63649gmQVbTPgCQS+7i8CHCdmwgX0fhmUxswKsVkWz2WJzWm22aSyeSKxWyhQAyvkAEoAeQAmo8lK9mh9EH4rOZsPoZvp5nZ9IF-uY-KDEF0bFCmbygsEuiZ9OYFijyLRTvVlvVGm8WogALRBfkIdX6FHHZJ8SjK2n0NUIWHav4dezBPxheww2Z2fVo07nLFQE1NM30i1SzpSGzmSVI4Phcz6bW6IKjCwwqwwyzBvx6+Ko7hkWAvMDe1V+hF+bC6RxWOy6AIwyJWaNBn6Jvw2PzmYOWKRpuJAA */
+  /** @xstate-layout N4IgpgJg5mDOIC5QAcCGAXAFgYgAoEEBVAZQFEBtABgF1EUB7WAS3SfoDs6QAPRAFgBMAGhABPRAA4AjADoArJUUBmJVICcUylIFSJAXz0i0WGagDGrAG5gZAIwCuTADYQm7KNggcbby-QDWNsaYphZM1naOLm5QCL70Zhhs7FTUqVzIjCzJXLwIqrKUAOyUSnyKlAKUaoJFIuIIAGzaMnxyqhIa7RKNlHwGRhgh5lY2Ds6u7tiEuAAi+AAqpAD6AEKEAJIAMrPpSCCZzKwcuYhSUkUymnJ8nVJKjTrSSvX8RUryFdVyjXxq7b8BgchqFRjIIHB0AAneiiGKebwyeKBGTBUHhGwQ2DQ2ExOLsPyJY4pGh7BhHHL7PJFIpqGRFXQSShyBRyARMtSvJoCS4AwQKRoPe5qIFokYY8GQmFwqYzeZLZazUjEBYAJQA8gBNMkHLLE04INkSGSNWlFPi-ARshmcsSIBSyOQSFQCX7aIqNOSikFoeywSB4Lb4bU0DJ6ymgPKu2QSORST1qLRyBkSHlc6SfZSqDRaHSNAyGEDsehYjJDMMUk5UxAAWkaXLr3pMrlghzAFeyVcjiDUNRkAjUjUTNWUPzkXN6siKPTafEEqlnTeGYWsHf11YQc65SitMi+7QUTKktyX6Ii42i7jXEZ4PeEdsN5pk-1URWtSh6rtP4oiWJxMqga8u1vQ1KGNTQamPdRmgEJRmQnUo9weP4dDzc1vxXGxMCYbF6ChBpyU7TgNzUe8Gj4FoFC+Hk-l6fpCzRX1-QgIDiO7BApBuK4fhUD1HiUVlxwfVM9wqFR1E0bQBALPQgA */
   createMachine(
     {
       id: 'path',
       tsTypes: {} as import('./path.machine.typegen').Typegen0,
-      initial: 'building',
+      initial: 'active',
 
       schema: {
         events: {} as PathMachineEvent,
@@ -98,41 +101,64 @@ export const createPathMachine = ({
       },
 
       states: {
-        building: {
-          invoke: {
-            src: 'animateBuild$',
-            onDone: 'destroying',
-          },
-
-          on: {
-            UPDATE_BUILD: {
-              target: 'building',
-              internal: true,
-              actions: 'updateBuild',
-            },
-          },
-
-          entry: 'init',
-        },
-
-        destroying: {
-          invoke: {
-            src: 'animateDestroy$',
-            onDone: 'dispose',
-          },
-
-          on: {
-            UPDATE_DESTROY: {
-              target: 'destroying',
-              internal: true,
-              actions: 'updateDestroy',
-            },
-          },
-        },
-
         dispose: {
           type: 'final',
           entry: 'dispose',
+        },
+
+        active: {
+          initial: 'building',
+
+          states: {
+            building: {
+              invoke: {
+                src: 'animateBuild$',
+                onDone: 'destroying',
+              },
+
+              on: {
+                UPDATE_BUILD: {
+                  target: 'building',
+                  internal: true,
+                  actions: 'updateBuild',
+                },
+              },
+
+              entry: 'init',
+            },
+
+            destroying: {
+              invoke: {
+                src: 'animateDestroy$',
+                onDone: '#path.dispose',
+              },
+
+              on: {
+                UPDATE_DESTROY: {
+                  target: 'destroying',
+                  internal: true,
+                  actions: 'updateDestroy',
+                },
+              },
+            },
+
+            history: {
+              type: 'history',
+              history: 'shallow',
+            },
+          },
+        },
+
+        paused: {
+          on: {
+            PLAY: 'active.history',
+          },
+        },
+      },
+
+      on: {
+        PAUSE: {
+          target: '.paused',
         },
       },
     },
@@ -245,13 +271,14 @@ export const createPathMachine = ({
         animateBuild$: ({
           pathLine,
           animationSpeed,
+          renderCount,
         }): Observable<UpdateBuildEvent> => {
           if (pathLine === undefined) throw new Error('Missing path line');
           if (animationSpeed === undefined)
             throw new Error('Missing animation speed');
 
           return animationFrames().pipe(
-            scan((renderCount) => renderCount + animationSpeed, 0),
+            scan((renderCount) => renderCount + animationSpeed, renderCount),
             map(
               (renderCount) =>
                 ({
@@ -268,13 +295,17 @@ export const createPathMachine = ({
         animateDestroy$: ({
           pathLine,
           animationSpeed,
+          deRenderCount,
         }): Observable<UpdateDestroyEvent> => {
           if (pathLine === undefined) throw new Error('Missing path line');
           if (animationSpeed === undefined)
             throw new Error('Missing animation speed');
 
           return animationFrames().pipe(
-            scan((deRenderCount) => deRenderCount + animationSpeed, 0),
+            scan(
+              (deRenderCount) => deRenderCount + animationSpeed,
+              deRenderCount
+            ),
             map(
               (deRenderCount) =>
                 ({

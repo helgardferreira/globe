@@ -8,7 +8,7 @@
         };
         invokeSrcNameMap: {
           "loadData$": "done.invoke.pathSpawner.loading:invocation[0]";
-"spawnPaths$": "done.invoke.pathSpawner.active:invocation[0]";
+"spawnPaths$": "done.invoke.pathSpawner.active.live:invocation[0]";
         };
         missingImplementations: {
           actions: never;
@@ -18,6 +18,7 @@
         };
         eventsCausingActions: {
           "disposePath": "DISPOSE_PATH";
+"forwardToChildren": "PAUSE" | "PLAY";
 "setData": "SET_DATA";
 "spawnPath": "SPAWN_PATH";
 "updateGlobe": "DISPOSE_PATH" | "SPAWN_PATH";
@@ -31,9 +32,9 @@
         };
         eventsCausingServices: {
           "loadData$": "xstate.init";
-"spawnPaths$": "DISPOSE_PATH" | "SET_DATA" | "SPAWN_PATH" | "UPDATE_MAX_PATHS";
+"spawnPaths$": "DISPOSE_PATH" | "PLAY" | "SET_DATA" | "SPAWN_PATH" | "UPDATE_MAX_PATHS";
         };
-        matchesStates: "active" | "loading";
+        matchesStates: "active" | "active.live" | "loading" | "paused" | { "active"?: "live"; };
         tags: never;
       }
   

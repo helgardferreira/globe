@@ -17,12 +17,12 @@
           services: never;
         };
         eventsCausingActions: {
-          "disposePathSpawner": "UPDATE_GLOBE_DOTS" | "UPDATE_MAX_PATHS" | "UPDATE_PATHS" | "xstate.stop";
-"forwardToPathSpawner": "UPDATE_MAX_PATHS";
+          "disposePathSpawner": "PAUSE" | "UPDATE_GLOBE_DOTS" | "UPDATE_MAX_PATHS" | "UPDATE_PATHS" | "xstate.stop";
+"forwardToPathSpawner": "PAUSE" | "PLAY" | "UPDATE_MAX_PATHS";
 "init": "INIT";
 "plotGlobeDots": "SET_MAP_DATA" | "UPDATE_GLOBE_DOTS";
 "setMapData": "SET_MAP_DATA";
-"spawnPathSpawner": "SET_MAP_DATA" | "UPDATE_GLOBE_DOTS" | "UPDATE_MAX_PATHS" | "UPDATE_PATHS";
+"spawnPathSpawner": "PLAY" | "SET_MAP_DATA" | "UPDATE_GLOBE_DOTS" | "UPDATE_MAX_PATHS" | "UPDATE_PATHS";
 "updateGlobeDots": "UPDATE_GLOBE_DOTS";
 "updateMaxPaths": "UPDATE_MAX_PATHS";
 "updatePaths": "UPDATE_PATHS";
@@ -36,7 +36,7 @@
         eventsCausingServices: {
           "fetchMap$": "INIT";
         };
-        matchesStates: "active" | "idle" | "loading";
+        matchesStates: "active" | "active.live" | "idle" | "loading" | "paused" | { "active"?: "live"; };
         tags: never;
       }
   

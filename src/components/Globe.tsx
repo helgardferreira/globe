@@ -4,21 +4,26 @@ import { GroupProps } from '@react-three/fiber';
 import { useInterpret, useSelector } from '@xstate/react';
 
 import { Path } from './Path';
-import { globeMachine } from '../services';
+import { GlobeMachineStateValue, globeMachine } from '../services';
 
 export type GlobeProps = {
   dotDensity?: number;
   rows?: number;
   maxPaths?: number;
+  isPaused?: boolean;
 } & GroupProps;
 
 export const Globe = React.forwardRef<Group, GlobeProps>(function Globe(
-  { dotDensity = 40, rows = 180, maxPaths = 10, ...props },
+  { dotDensity = 40, rows = 180, maxPaths = 10, isPaused = false, ...props },
   ref
 ) {
   const globeService = useInterpret(globeMachine);
   const dotMesh = useSelector(globeService, ({ context }) => context.dotMesh);
   const paths = useSelector(globeService, ({ context }) => context.paths);
+  const value = useSelector(
+    globeService,
+    ({ toStrings }) => toStrings().slice(-1)[0] as GlobeMachineStateValue
+  );
 
   useEffect(() => {
     globeService.send({
@@ -43,6 +48,14 @@ export const Globe = React.forwardRef<Group, GlobeProps>(function Globe(
       maxPaths,
     });
   }, [globeService, maxPaths]);
+
+  useEffect(() => {
+    if (/active|paused/.test(value)) {
+      globeService.send({
+        type: isPaused ? 'PAUSE' : 'PLAY',
+      });
+    }
+  }, [globeService, isPaused, value]);
 
   return (
     <group ref={ref} {...props}>
